@@ -13,7 +13,6 @@ class _BuyInScreenState extends State<BuyInScreen> {
   late double cashValue;
 
   final Map<String, TextEditingController> _controllers = {};
-
   final TextEditingController _newNameController = TextEditingController();
   final TextEditingController _newBuyInController = TextEditingController();
 
@@ -44,7 +43,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
   void _addNewPlayer() {
     final name = _newNameController.text.trim();
     final buyIn = double.tryParse(_newBuyInController.text.trim());
-    if (name.isEmpty || buyIn == null) return;
+    if (name.isEmpty || buyIn == null || buyIn <= 0) return;
 
     setState(() {
       players.add({'name': name, 'buyIn': buyIn});
@@ -53,6 +52,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
 
     _newNameController.clear();
     _newBuyInController.clear();
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Added new player $name')),
     );
@@ -73,7 +73,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Mid-Game Buy-Ins')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: ListView(
           children: [
             const Text(
@@ -84,66 +84,66 @@ class _BuyInScreenState extends State<BuyInScreen> {
             ...players.map((player) {
               final name = player['name'];
               final current = player['buyIn'];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('$name', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text('Buy-In: ₹${current.toStringAsFixed(0)}'),
-                  const SizedBox(height: 6),
-                  Row(
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controllers[name],
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Add Buy-In (₹)',
-                            border: OutlineInputBorder(),
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text('Current Buy-In: ₹${current.toStringAsFixed(0)}'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controllers[name],
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(labelText: 'Add Buy-In (₹)'),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          final value = double.tryParse(_controllers[name]!.text.trim());
-                          if (value != null && value > 0) {
-                            _addBuyIn(name, value);
-                          }
-                        },
-                        child: const Text('Add'),
+                          const SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: () {
+                              final value = double.tryParse(_controllers[name]!.text.trim());
+                              if (value != null && value > 0) {
+                                _addBuyIn(name, value);
+                              }
+                            },
+                            child: const Text('Add'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                ],
+                ),
               );
             }),
-            const Divider(height: 32),
+            const Divider(height: 40),
             const Text(
               'Add New Player',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             TextField(
               controller: _newNameController,
-              decoration: const InputDecoration(
-                labelText: 'Player Name',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Player Name'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _newBuyInController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Buy-In (₹)',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Buy-In (₹)'),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: _addNewPlayer,
-              icon: const Icon(Icons.person_add),
+              icon: const Icon(Icons.person_add_alt_1),
               label: const Text('Add Player'),
             ),
             const SizedBox(height: 32),
@@ -162,10 +162,9 @@ class _BuyInScreenState extends State<BuyInScreen> {
               icon: const Icon(Icons.arrow_forward),
               label: const Text('Enter Final Chips'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                minimumSize: const Size.fromHeight(50),
               ),
-            )
+            ),
           ],
         ),
       ),

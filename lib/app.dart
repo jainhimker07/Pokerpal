@@ -7,32 +7,86 @@ import 'screens/add_player_screen.dart';
 import 'screens/buyin_screen.dart';
 import 'screens/player_screen.dart';
 
-
 class PokerPalApp extends StatelessWidget {
   const PokerPalApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = Colors.deepPurple;
+    //final accentColor = Colors.tealAccent;
+
     return MaterialApp(
       title: 'PokerPal',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: baseColor,
           brightness: Brightness.light,
         ),
+        scaffoldBackgroundColor: const Color(0xFFF8F8F8),
         fontFamily: 'Roboto',
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: baseColor,
+            foregroundColor: Colors.white,
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: baseColor.shade200),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: baseColor, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          labelStyle: const TextStyle(color: Colors.grey),
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: baseColor,
           brightness: Brightness.dark,
         ),
         fontFamily: 'Roboto',
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: baseColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF1E1E1E),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: baseColor.shade100),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: baseColor, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          labelStyle: const TextStyle(color: Colors.grey),
+        ),
       ),
-      themeMode: ThemeMode.system,
       initialRoute: '/',
       routes: {
         '/': (context) => const HomeScreen(),
@@ -42,7 +96,6 @@ class PokerPalApp extends StatelessWidget {
         '/buyins': (context) => const BuyInScreen(),
         '/player': (context) => const PlayerScreen(),
         '/add-player': (context) => const AddPlayerScreen(),
-        // Add other screens like '/game', '/players' here later
       },
     );
   }

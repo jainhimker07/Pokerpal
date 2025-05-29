@@ -6,73 +6,100 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
-    final List<Map<String, dynamic>> players =
-        List<Map<String, dynamic>>.from(args['players']);
+    final List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(args['players']);
     final double chipValue = args['chipValue'];
     final double cashValue = args['cashValue'];
+
+    final double ratio = chipValue / cashValue;
+
+    // Calculate total buy-in in chips
+    final double totalChipBuyIn = players.fold(
+      0.0,
+      (sum, p) => sum + ((p['buyIn'] as double) * ratio),
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Enter Final Chips'),
+        centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
             Expanded(
-              child: ListView.separated(
+              child: ListView.builder(
                 itemCount: players.length,
-                separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final player = players[index];
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        player['name'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            player['name'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Final Chips',
+                            ),
+                            onChanged: (value) {
+                              player['finalChips'] = double.tryParse(value) ?? 0;
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Final Chips',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (value) {
-                          player['finalChips'] = double.tryParse(value) ?? 0;
-                        },
-                      ),
-                    ],
+                    ),
                   );
                 },
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  '/settlement',
-                  arguments: {
-                    'players': players,
-                    'chipValue': chipValue,
-                    'cashValue': cashValue,
-                  },
-                );
-              },
-              icon: const Icon(Icons.calculate),
-              label: const Text('Calculate Settlement'),
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            Builder(
+              builder: (context) => ElevatedButton.icon(
+                onPressed: () {
+                  final double totalFinalChips = players.fold(
+                    0.0,
+                    (sum, p) => sum + (p['finalChips'] ?? 0),
+                  );
+
+                  if ((totalFinalChips - totalChipBuyIn).abs() > 0.01) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Mismatch! Final chips total (${totalFinalChips.toStringAsFixed(0)}) ≠ Buy-in total (${totalChipBuyIn.toStringAsFixed(0)})',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pushNamed(
+                    context,
+                    '/settlement',
+                    arguments: {
+                      'players': players,
+                      'chipValue': chipValue,
+                      'cashValue': cashValue,
+                    },
+                  );
+                },
+                icon: const Icon(Icons.calculate),
+                label: const Text('Calculate Settlement'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
                 ),
               ),
             ),

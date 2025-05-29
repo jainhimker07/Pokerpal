@@ -15,62 +15,76 @@ class SettlementScreen extends StatelessWidget {
     final double ratio = chipValue / cashValue;
     final settlementService = SettlementService();
 
-    // Calculate player results
     final results = settlementService.calculateSettlements(
       players: players,
       chipToCashRatio: ratio,
     );
 
-    // Intelligent "who owes whom" logic
     final transactions = settlementService.getSettlementTransactions(results);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settlement Summary')),
+      appBar: AppBar(
+        title: const Text('Settlement Summary'),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
             const Text(
               'Final Summary',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: ListView.separated(
+              child: ListView.builder(
                 itemCount: results.length,
-                separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final r = results[index];
                   final netText = r.netProfit > 0
                       ? '+${Formatter.currency(r.netProfit)}'
                       : Formatter.currency(r.netProfit);
 
-                  return ListTile(
-                    leading: const Icon(Icons.person),
-                    title: Text(r.name),
-                    subtitle: Text(
-                      'Buy-In: ₹${r.buyIn.toStringAsFixed(0)}\n'
-                      'Final Value: ₹${r.finalAmount.toStringAsFixed(0)}',
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    trailing: Text(
-                      netText,
-                      style: TextStyle(
-                        color: r.netProfit >= 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.deepPurple.shade100,
+                        child: const Icon(Icons.person, color: Colors.deepPurple),
+                      ),
+                      title: Text(
+                        r.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'Buy-In: ₹${r.buyIn.toStringAsFixed(0)}\n'
+                        'Final Value: ₹${r.finalAmount.toStringAsFixed(0)}',
+                      ),
+                      trailing: Text(
+                        netText,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: r.netProfit >= 0 ? Colors.green : Colors.red,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
+            const Divider(height: 32),
+            const SizedBox(height: 8),
             const Text(
               'Who Owes Whom',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             _ToggleableSettlement(transactions: transactions),
           ],
         ),
@@ -102,7 +116,10 @@ class _ToggleableSettlementState extends State<_ToggleableSettlement> {
               showTransactions = !showTransactions;
             });
           },
-          icon: const Icon(Icons.swap_horiz),
+          icon: Icon(
+            showTransactions ? Icons.visibility_off : Icons.visibility,
+            color: Colors.deepPurple,
+          ),
           label: Text(
             showTransactions ? 'Hide Settlements' : 'Show Who Owes Whom',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -111,9 +128,25 @@ class _ToggleableSettlementState extends State<_ToggleableSettlement> {
         const SizedBox(height: 8),
         if (showTransactions)
           ...widget.transactions.map(
-            (t) => ListTile(
-              leading: const Icon(Icons.arrow_forward),
-              title: Text(t),
+            (t) => Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz, color: Colors.deepPurple),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      t,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
       ],

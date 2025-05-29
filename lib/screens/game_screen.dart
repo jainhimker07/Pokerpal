@@ -23,10 +23,7 @@ class _GameScreenState extends State<GameScreen> {
     if (name.isEmpty || buyIn == null || buyIn <= 0) return;
 
     setState(() {
-      players.add({
-        'name': name,
-        'buyIn': buyIn,
-      });
+      players.add({'name': name, 'buyIn': buyIn});
     });
 
     _nameController.clear();
@@ -72,12 +69,12 @@ class _GameScreenState extends State<GameScreen> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: ListView(
           children: [
             const Text(
               'Chip-to-Cash Ratio',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -87,21 +84,20 @@ class _GameScreenState extends State<GameScreen> {
                     controller: _chipController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Chips (e.g. 500)',
-                      border: OutlineInputBorder(),
+                      labelText: 'Chips (e.g. 1000)',
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text('='),
-                const SizedBox(width: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('='),
+                ),
                 Expanded(
                   child: TextField(
                     controller: _cashController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Cash (e.g. ₹100)',
-                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -112,55 +108,60 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 12),
             const Text(
               'Add Player',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Player Name',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Player Name'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _buyInController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Initial Buy-In (₹)',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Initial Buy-In (₹)'),
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
               onPressed: _addPlayer,
-              child: const Text('Add Player'),
+              icon: const Icon(Icons.person_add),
+              label: const Text('Add Player'),
             ),
             const SizedBox(height: 24),
             const Text(
               'Players',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             if (players.isEmpty)
-              const Text('No players added yet.')
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('No players added yet.', style: TextStyle(color: Colors.grey)),
+              )
             else
               Column(
                 children: players
-                    .map((player) => ListTile(
+                    .map(
+                      (player) => Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: const Icon(Icons.person_outline),
                           title: Text(player['name']),
                           subtitle: Text('Buy-In: ₹${player['buyIn']}'),
-                        ))
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: _continueToGame,
               icon: const Icon(Icons.play_arrow),
               label: const Text('Continue to Game'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 18),
+                minimumSize: const Size.fromHeight(50),
               ),
             ),
           ],
