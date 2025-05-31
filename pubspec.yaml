@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   intl: ^0.18.1
   cupertino_icons: ^1.0.8
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -20,3 +21,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/playstore.png
+    - assets/appstore.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path_android: "assets/playstore.png"
+  image_path_ios: "assets/appstore.png"
