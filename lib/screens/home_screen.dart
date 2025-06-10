@@ -27,7 +27,20 @@ class HomeScreen extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/groups'),
+              icon: const Icon(Icons.group),
+              label: const Text('View Groups'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => Navigator.pushNamed(context, '/game'),
               icon: const Icon(Icons.play_circle_fill, size: 28),

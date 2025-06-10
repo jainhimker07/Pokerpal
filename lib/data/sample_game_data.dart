@@ -6,6 +6,7 @@ final GameModel sampleGame = GameModel(
   createdAt: DateTime.now(),
   chipValue: 500,
   cashValue: 100,
+  groupId: 'sample-group-id'
 );
 
 final List<PlayerModel> samplePlayers = [

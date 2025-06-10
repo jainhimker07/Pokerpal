@@ -11,6 +11,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
   late List<Map<String, dynamic>> players;
   late double chipValue;
   late double cashValue;
+  String? groupName;
 
   final Map<String, TextEditingController> _controllers = {};
   final TextEditingController _newNameController = TextEditingController();
@@ -23,6 +24,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
     players = List<Map<String, dynamic>>.from(args['players']);
     chipValue = args['chipValue'];
     cashValue = args['cashValue'];
+    groupName = args['groupName']; // optional
 
     for (final player in players) {
       _controllers[player['name']] = TextEditingController();
@@ -71,7 +73,21 @@ class _BuyInScreenState extends State<BuyInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mid-Game Buy-Ins')),
+      appBar: AppBar(
+        title: const Text('Mid-Game Buy-Ins'),
+        bottom: groupName != null
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(28),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Group: $groupName',
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ),
+              )
+            : null,
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: ListView(
@@ -156,6 +172,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
                     'players': players,
                     'chipValue': chipValue,
                     'cashValue': cashValue,
+                    if (groupName != null) 'groupName': groupName,
                   },
                 );
               },

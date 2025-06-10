@@ -9,12 +9,14 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen> {
   late List<Map<String, dynamic>> players;
+  String? groupName;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     players = List<Map<String, dynamic>>.from(args['players']);
+    groupName = args['groupName']; // optional
   }
 
   void _exitPlayer(int index) {
@@ -54,7 +56,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Players')),
+      appBar: AppBar(
+        title: Text(groupName != null ? 'Players – $groupName' : 'Players'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView.builder(

@@ -11,10 +11,21 @@ class _GameScreenState extends State<GameScreen> {
   final TextEditingController _chipController = TextEditingController();
   final TextEditingController _cashController = TextEditingController();
 
-  List<Map<String, dynamic>> players = [];
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _buyInController = TextEditingController();
+
+  List<Map<String, dynamic>> players = [];
+  String? groupName;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null && args.containsKey('groupName')) {
+      groupName = args['groupName'];
+    }
+  }
 
   void _addPlayer() {
     final name = _nameController.text.trim();
@@ -48,6 +59,7 @@ class _GameScreenState extends State<GameScreen> {
         'players': players,
         'chipValue': chip,
         'cashValue': cash,
+        if (groupName != null) 'groupName': groupName,
       },
     );
   }
@@ -67,6 +79,18 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         title: const Text('Set Up Game'),
         centerTitle: true,
+        bottom: groupName != null
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(28),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Group: $groupName',
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ),
+              )
+            : null,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

@@ -9,6 +9,7 @@ class ResultScreen extends StatelessWidget {
     final List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(args['players']);
     final double chipValue = args['chipValue'];
     final double cashValue = args['cashValue'];
+    final String? groupName = args['groupName'];
 
     final double ratio = chipValue / cashValue;
 
@@ -22,6 +23,18 @@ class ResultScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Enter Final Chips'),
         centerTitle: true,
+        bottom: groupName != null
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(28),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Group: $groupName',
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ),
+              )
+            : null,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -93,6 +106,7 @@ class ResultScreen extends StatelessWidget {
                       'players': players,
                       'chipValue': chipValue,
                       'cashValue': cashValue,
+                      if (groupName != null) 'groupName': groupName,
                     },
                   );
                 },

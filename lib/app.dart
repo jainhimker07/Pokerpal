@@ -7,13 +7,15 @@ import 'screens/add_player_screen.dart';
 import 'screens/buyin_screen.dart';
 import 'screens/player_screen.dart';
 
+// Import the group feature
+import 'screens/groups/group_list_screen.dart';
+
 class PokerPalApp extends StatelessWidget {
   const PokerPalApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     final baseColor = Colors.deepPurple;
-    //final accentColor = Colors.tealAccent;
 
     return MaterialApp(
       title: 'PokerPal',
@@ -96,6 +98,7 @@ class PokerPalApp extends StatelessWidget {
         '/buyins': (context) => const BuyInScreen(),
         '/player': (context) => const PlayerScreen(),
         '/add-player': (context) => const AddPlayerScreen(),
+        '/groups': (context) => const GroupListScreen(), // ✅ NEW ROUTE
       },
     );
   }

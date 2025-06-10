@@ -13,6 +13,10 @@ dependencies:
   intl: ^0.18.1
   cupertino_icons: ^1.0.8
   flutter_launcher_icons: ^0.14.3
+  url_launcher: ^6.2.5
+  shared_preferences: ^2.2.2
+  uuid: ^4.3.3
+  share_plus: ^7.2.1
 
 dev_dependencies:
   flutter_test:

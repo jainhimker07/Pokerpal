@@ -5,6 +5,7 @@ class SettlementService {
   List<SettlementModel> calculateSettlements({
     required List<Map<String, dynamic>> players,
     required double chipToCashRatio,
+    String? groupId, // Optional: for logging or group tracking
   }) {
     List<SettlementModel> results = [];
 
@@ -13,12 +14,9 @@ class SettlementService {
       final double buyIn = player['buyIn'];
       final double finalChips = player['finalChips'] ?? player['exitChips'] ?? 0;
 
-      // Convert buy-in ₹ to chips, then compare with final chips
       final double expectedChips = buyIn * chipToCashRatio;
       final double netChips = finalChips - expectedChips;
       final double netProfit = netChips / chipToCashRatio;
-
-      // Also show how much they finally got in ₹
       final double finalCash = finalChips / chipToCashRatio;
 
       results.add(SettlementModel(
@@ -34,9 +32,8 @@ class SettlementService {
     return results;
   }
 
-  /// Generates a list of “who owes whom” transactions based on profit/loss
+  /// Generates a list of “who owes whom” transactions
   List<String> getSettlementTransactions(List<SettlementModel> results) {
-    // Clone results into mutable objects
     final creditors = <SettlementModel>[];
     final debtors = <SettlementModel>[];
 
@@ -45,7 +42,6 @@ class SettlementService {
       if (r.netProfit < -0.01) debtors.add(SettlementModel.clone(r));
     }
 
-    // Sort for greedy matching: largest debts to largest gains
     creditors.sort((a, b) => b.netProfit.compareTo(a.netProfit));
     debtors.sort((a, b) => a.netProfit.compareTo(b.netProfit));
 
@@ -60,23 +56,47 @@ class SettlementService {
 
       final owed = debtor.netProfit.abs();
       final available = creditor.netProfit;
-
       final amount = owed < available ? owed : available;
 
       if (amount > 0.01) {
-        transactions.add(
-          '${debtor.name} pays ₹${amount.toStringAsFixed(0)} to ${creditor.name}',
-        );
+        transactions.add('${debtor.name} pays ₹${amount.toStringAsFixed(0)} to ${creditor.name}');
       }
 
       debtor.netProfit += amount;
       creditor.netProfit -= amount;
 
-      // Advance pointers if settled
       if (debtor.netProfit.abs() < 1) i++;
       if (creditor.netProfit.abs() < 1) j++;
     }
 
     return transactions;
+  }
+
+  /// Optional: Generates a summary string for sharing
+  String generateSummaryText({
+    required List<SettlementModel> results,
+    required List<String> transactions,
+    String? groupName,
+  }) {
+    final buffer = StringBuffer();
+
+    if (groupName != null) buffer.writeln('💰 Group: $groupName\n');
+
+    buffer.writeln('🔍 Final Summary:');
+    for (var r in results) {
+      final net = r.netProfit >= 0 ? '+₹${r.netProfit.toStringAsFixed(0)}' : '₹${r.netProfit.toStringAsFixed(0)}';
+      buffer.writeln('${r.name}: $net (Buy-In ₹${r.buyIn.toStringAsFixed(0)}, Final ₹${r.finalAmount.toStringAsFixed(0)})');
+    }
+
+    buffer.writeln('\n🤝 Who Owes Whom:');
+    if (transactions.isEmpty) {
+      buffer.writeln('All settled. No dues.');
+    } else {
+      for (var t in transactions) {
+        buffer.writeln(t);
+      }
+    }
+
+    return buffer.toString().trim();
   }
 }

@@ -11,6 +11,7 @@ class SettlementScreen extends StatelessWidget {
     final List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(args['players']);
     final double chipValue = args['chipValue'];
     final double cashValue = args['cashValue'];
+    final String? groupName = args['groupName'];
 
     final double ratio = chipValue / cashValue;
     final settlementService = SettlementService();
@@ -26,6 +27,18 @@ class SettlementScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Settlement Summary'),
         centerTitle: true,
+        bottom: groupName != null
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(28),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Group: $groupName',
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ),
+              )
+            : null,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
