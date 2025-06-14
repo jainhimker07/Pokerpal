@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => Navigator.pushNamed(context, '/groups'),
               icon: const Icon(Icons.group),
-              label: const Text('View Groups'),
+              label: const Text('Play with your Group'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),

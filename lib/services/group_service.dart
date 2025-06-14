@@ -12,9 +12,9 @@ class GroupService {
 
   List<GroupModel> get groups => List.unmodifiable(_groups);
 
-  void createGroup(String name, List<String> members, List<String> gameIds) {
+  void createGroup(String id, String name, List<String> members, List<String> gameIds) {
     final newGroup = GroupModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: id,
       name: name,
       members: members,
       gameIds: gameIds,
@@ -46,7 +46,6 @@ class GroupService {
   }
 
   Future<List<GroupModel>> getAllGroups() async {
-    // Simulate loading with a delay if needed
     return _groups;
   }
 }

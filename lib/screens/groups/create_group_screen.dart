@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../../services/group_service.dart';
 
 class CreateGroupScreen extends StatefulWidget {
@@ -34,17 +33,21 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     final String groupId = const Uuid().v4();
 
-    // ✅ Corrected to pass 3 arguments: id, name, members (as List<String>)
-    GroupService().createGroup(groupId, groupName, [yourName]);
+    // Call updated GroupService method
+    GroupService().createGroup(
+      groupId,
+      groupName,
+      [yourName], // ✅ Properly wrapped in a list
+      [],         // ✅ Start with empty gameIds
+    );
 
     final inviteText =
         'Join my game group "$groupName" on Casino Split 🎲\nDownload the app and use this group code: $groupId';
 
     await Share.share(inviteText);
 
-    if (context.mounted) {
-      Navigator.pop(context, true);
-    }
+    if (!mounted) return;
+    Navigator.pop(context, true);
   }
 
   @override
