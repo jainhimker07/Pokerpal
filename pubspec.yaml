@@ -17,6 +17,8 @@ dependencies:
   shared_preferences: ^2.2.2
   uuid: ^4.3.3
   share_plus: ^7.2.1
+  firebase_core: latest_version
+  cloud_firestore: latest_version
 
 dev_dependencies:
   flutter_test:
