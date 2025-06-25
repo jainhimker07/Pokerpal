@@ -1,16 +1,43 @@
 import 'package:flutter/material.dart';
 
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map;
-    final List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(args['players']);
-    final double chipValue = args['chipValue'];
-    final double cashValue = args['cashValue'];
-    final String? groupName = args['groupName'];
+  State<ResultScreen> createState() => _ResultScreenState();
+}
 
+class _ResultScreenState extends State<ResultScreen> {
+  late List<Map<String, dynamic>> players;
+  late double chipValue;
+  late double cashValue;
+  String? groupName;
+  final Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)!.settings.arguments as Map;
+    players = List<Map<String, dynamic>>.from(args['players']);
+    chipValue = args['chipValue'];
+    cashValue = args['cashValue'];
+    groupName = args['groupName'];
+
+    for (final player in players) {
+      _controllers[player['name']] = TextEditingController();
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final double ratio = chipValue / cashValue;
 
     // Calculate total buy-in in chips
@@ -63,6 +90,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           TextField(
+                            controller: _controllers[player['name']],
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               labelText: 'Final Chips',
