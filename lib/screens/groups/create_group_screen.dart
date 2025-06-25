@@ -15,12 +15,20 @@ class CreateGroupScreen extends StatefulWidget {
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _yourNameController = TextEditingController();
+  final List<TextEditingController> _memberControllers = [];
 
   bool isCreating = false;
+
+  void _addMemberField() {
+    setState(() {
+      _memberControllers.add(TextEditingController());
+    });
+  }
 
   void _createGroup() async {
     final groupName = _nameController.text.trim();
     final yourName = _yourNameController.text.trim();
+    final members = _memberControllers.map((c) => c.text.trim()).where((name) => name.isNotEmpty).toList();
 
     if (groupName.isEmpty || yourName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -33,12 +41,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     final String groupId = const Uuid().v4();
 
+    // Add the creator to the members list
+    members.insert(0, yourName);
+
     // Call updated GroupService method
     GroupService().createGroup(
       groupId,
       groupName,
-      [yourName], // ✅ Properly wrapped in a list
-      [],         // ✅ Start with empty gameIds
+      members, // Include all members
+      [],         // Start with empty gameIds
     );
 
     final inviteText =
@@ -54,6 +65,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   void dispose() {
     _nameController.dispose();
     _yourNameController.dispose();
+    for (final controller in _memberControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -79,6 +93,21 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 labelText: 'Your Name',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 16),
+            ..._memberControllers.map((controller) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: 'Member Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            )),
+            TextButton(
+              onPressed: _addMemberField,
+              child: const Text('Add Member'),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(

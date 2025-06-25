@@ -16,29 +16,22 @@ class _GameScreenState extends State<GameScreen> {
 
   List<Map<String, dynamic>> players = [];
   String? groupName;
+  bool isGroupGame = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-    if (args != null && args.containsKey('groupName')) {
-      groupName = args['groupName'];
+    if (args != null) {
+      if (args.containsKey('groupName')) {
+        groupName = args['groupName'];
+        isGroupGame = true;
+      }
+      if (args.containsKey('players')) {
+        players = List<Map<String, dynamic>>.from(args['players']);
+      }
     }
-  }
-
-  void _addPlayer() {
-    final name = _nameController.text.trim();
-    final buyIn = double.tryParse(_buyInController.text.trim());
-
-    if (name.isEmpty || buyIn == null || buyIn <= 0) return;
-
-    setState(() {
-      players.add({'name': name, 'buyIn': buyIn});
-    });
-
-    _nameController.clear();
-    _buyInController.clear();
   }
 
   void _continueToGame() {
@@ -62,6 +55,23 @@ class _GameScreenState extends State<GameScreen> {
         if (groupName != null) 'groupName': groupName,
       },
     );
+  }
+
+  void _addPlayer() {
+    final name = _nameController.text.trim();
+    final buyIn = double.tryParse(_buyInController.text.trim());
+
+    if (name.isEmpty || buyIn == null || buyIn <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter valid player name and buy-in')),
+      );
+      return;
+    }
+
+    players.add({'name': name, 'buyIn': buyIn});
+    _nameController.clear();
+    _buyInController.clear();
+    setState(() {});
   }
 
   @override
@@ -130,28 +140,30 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 12),
-            const Text(
-              'Add Player',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Player Name'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _buyInController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Initial Buy-In (₹)'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _addPlayer,
-              icon: const Icon(Icons.person_add),
-              label: const Text('Add Player'),
-            ),
-            const SizedBox(height: 24),
+            if (!isGroupGame) ...[
+              const Text(
+                'Add Player',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Player Name'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _buyInController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Initial Buy-In (₹)'),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _addPlayer,
+                icon: const Icon(Icons.person_add),
+                label: const Text('Add Player'),
+              ),
+              const SizedBox(height: 24),
+            ],
             const Text(
               'Players',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

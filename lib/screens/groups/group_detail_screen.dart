@@ -18,9 +18,14 @@ class GroupDetailScreen extends StatelessWidget {
   }
 
   void _startNewGame(BuildContext context) {
-    // Placeholder for future functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Start game from group: Coming soon!')),
+    Navigator.pushNamed(
+      context,
+      '/game',
+      arguments: {
+        'players': group.members.map((name) => {'name': name, 'buyIn': 0.0}).toList(),
+        'groupName': group.name,
+        'promptForRatio': true,
+      },
     );
   }
 
