@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 class BuyInScreen extends StatefulWidget {
   const BuyInScreen({super.key});
@@ -8,7 +9,7 @@ class BuyInScreen extends StatefulWidget {
 }
 
 class _BuyInScreenState extends State<BuyInScreen> {
-  late List<Map<String, dynamic>> players;
+  List<Map<String, dynamic>> players = [];
   late double chipValue;
   late double cashValue;
   String? groupName;
@@ -20,14 +21,28 @@ class _BuyInScreenState extends State<BuyInScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments as Map;
-    players = List<Map<String, dynamic>>.from(args['players']);
-    chipValue = args['chipValue'];
-    cashValue = args['cashValue'];
+    final args = ModalRoute.of(context)!.settings.arguments as Map?;
+    if (args == null) {
+      // Handle the case where arguments are null
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Missing game data. Please restart the game.')),
+        );
+        Navigator.pop(context);
+      });
+      return;
+    }
+    if (players.isEmpty) { // Avoid reinitialization
+      players = List<Map<String, dynamic>>.from(args['players'] ?? []);
+    }
+    chipValue = args['chipValue'] ?? 0.0;
+    cashValue = args['cashValue'] ?? 0.0;
     groupName = args['groupName']; // optional
 
     for (final player in players) {
-      _controllers[player['name']] = TextEditingController();
+      if (!_controllers.containsKey(player['name'])) {
+        _controllers[player['name']] = TextEditingController();
+      }
     }
   }
 
