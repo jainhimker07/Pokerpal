@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "150198810607",
+    "firebase_url": "https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "pokerpal-6e635",
+    "storage_bucket": "pokerpal-6e635.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150198810607:android:930df01d2543758f87681a",
+        "android_client_info": {
+          "package_name": "com.example.poker_pal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-O3jgYatZiZEcwbokyihIQI7DIcCEeaA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
