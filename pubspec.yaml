@@ -19,6 +19,8 @@ dependencies:
   share_plus: ^7.2.1
   firebase_core: ^2.0.0
   cloud_firestore: ^4.17.5
+  firebase_auth: ^4.19.6
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
