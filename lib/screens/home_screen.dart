@@ -34,7 +34,10 @@ class HomeScreen extends StatelessWidget {
               label: const Text('Play with your Group'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -47,7 +50,10 @@ class HomeScreen extends StatelessWidget {
               label: const Text('Start New Game'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -63,15 +69,30 @@ class HomeScreen extends StatelessWidget {
               child: Center(
                 child: Text(
                   'No games yet. Let’s deal some cards!',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ),
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.trending_up),
+            label: 'Progress',
+          ),
+        ],
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/progress');
+          }
+        },
       ),
     );
   }

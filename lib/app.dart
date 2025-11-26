@@ -9,6 +9,7 @@ import 'screens/add_player_screen.dart';
 import 'screens/buyin_screen.dart';
 import 'screens/player_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/progress_screen.dart';
 
 // Import the group feature
 import 'screens/groups/group_list_screen.dart';
@@ -36,7 +37,10 @@ class PokerPalApp extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: baseColor,
             foregroundColor: Colors.white,
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -54,7 +58,10 @@ class PokerPalApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: baseColor, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 16,
+          ),
           labelStyle: const TextStyle(color: Colors.grey),
         ),
       ),
@@ -71,7 +78,10 @@ class PokerPalApp extends StatelessWidget {
             backgroundColor: baseColor,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -88,7 +98,10 @@ class PokerPalApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: baseColor, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 16,
+          ),
           labelStyle: const TextStyle(color: Colors.grey),
         ),
       ),
@@ -103,6 +116,7 @@ class PokerPalApp extends StatelessWidget {
         '/player': (context) => const PlayerScreen(),
         '/add-player': (context) => const AddPlayerScreen(),
         '/groups': (context) => const GroupListScreen(),
+        '/progress': (context) => const ProgressScreen(),
       },
     );
   }
@@ -119,9 +133,7 @@ class AuthWrapper extends StatelessWidget {
         // Show loading while checking auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 

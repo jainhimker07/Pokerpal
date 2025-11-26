@@ -1,44 +1,80 @@
 import 'package:flutter/material.dart';
 import '../utils/formatter.dart';
 import '../services/settlement_service.dart';
+import '../services/progress_service.dart';
+import '../models/settlement_model.dart';
 
-class SettlementScreen extends StatelessWidget {
+class SettlementScreen extends StatefulWidget {
   const SettlementScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<SettlementScreen> createState() => _SettlementScreenState();
+}
+
+class _SettlementScreenState extends State<SettlementScreen> {
+  List<Map<String, dynamic>> players = [];
+  double chipValue = 0;
+  double cashValue = 0;
+  String? groupName;
+  late List<SettlementModel> results;
+  late List<String> transactions;
+  bool _initialized = false;
+  final _progressService = ProgressService();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
     final args = ModalRoute.of(context)!.settings.arguments as Map;
-    final List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(args['players']);
-    final double chipValue = args['chipValue'];
-    final double cashValue = args['cashValue'];
-    final String? groupName = args['groupName'];
+    players = List<Map<String, dynamic>>.from(args['players']);
+    chipValue = args['chipValue'];
+    cashValue = args['cashValue'];
+    groupName = args['groupName'];
 
     final double ratio = chipValue / cashValue;
     final settlementService = SettlementService();
 
-    final results = settlementService.calculateSettlements(
+    results = settlementService.calculateSettlements(
       players: players,
       chipToCashRatio: ratio,
     );
 
-    final transactions = settlementService.getSettlementTransactions(results);
+    transactions = settlementService.getSettlementTransactions(results);
+    _recordGame();
+    _initialized = true;
+  }
 
+  Future<void> _recordGame() async {
+    await _progressService.recordGame(
+      chipValue: chipValue,
+      cashValue: cashValue,
+      settlements: results,
+      groupName: groupName,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settlement Summary'),
         centerTitle: true,
-        bottom: groupName != null
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(28),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'Group: $groupName',
-                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+        bottom:
+            groupName != null
+                ? PreferredSize(
+                  preferredSize: const Size.fromHeight(28),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      'Group: $groupName',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
                   ),
-                ),
-              )
-            : null,
+                )
+                : null,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -54,9 +90,10 @@ class SettlementScreen extends StatelessWidget {
                 itemCount: results.length,
                 itemBuilder: (context, index) {
                   final r = results[index];
-                  final netText = r.netProfit > 0
-                      ? '+${Formatter.currency(r.netProfit)}'
-                      : Formatter.currency(r.netProfit);
+                  final netText =
+                      r.netProfit > 0
+                          ? '+${Formatter.currency(r.netProfit)}'
+                          : Formatter.currency(r.netProfit);
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -68,7 +105,10 @@ class SettlementScreen extends StatelessWidget {
                       contentPadding: const EdgeInsets.all(16),
                       leading: CircleAvatar(
                         backgroundColor: Colors.deepPurple.shade100,
-                        child: const Icon(Icons.person, color: Colors.deepPurple),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.deepPurple,
+                        ),
                       ),
                       title: Text(
                         r.name,
@@ -153,10 +193,7 @@ class _ToggleableSettlementState extends State<_ToggleableSettlement> {
                   const Icon(Icons.swap_horiz, color: Colors.deepPurple),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      t,
-                      style: const TextStyle(fontSize: 15),
-                    ),
+                    child: Text(t, style: const TextStyle(fontSize: 15)),
                   ),
                 ],
               ),
