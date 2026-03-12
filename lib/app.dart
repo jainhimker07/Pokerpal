@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/services/auth_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/result_screen.dart';
@@ -10,6 +9,7 @@ import 'screens/buyin_screen.dart';
 import 'screens/player_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/progress_screen.dart';
+import 'theme/app_theme.dart';
 
 // Import the group feature
 import 'screens/groups/group_list_screen.dart';
@@ -19,92 +19,12 @@ class PokerPalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = Colors.deepPurple;
-
     return MaterialApp(
       title: 'PokerPal',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: baseColor,
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF8F8F8),
-        fontFamily: 'Roboto',
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: baseColor,
-            foregroundColor: Colors.white,
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: baseColor.shade200),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: baseColor, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 16,
-          ),
-          labelStyle: const TextStyle(color: Colors.grey),
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: baseColor,
-          brightness: Brightness.dark,
-        ),
-        fontFamily: 'Roboto',
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: baseColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF1E1E1E),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: baseColor.shade100),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: baseColor, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 16,
-          ),
-          labelStyle: const TextStyle(color: Colors.grey),
-        ),
-      ),
+      themeMode: ThemeMode.dark,
+      theme: AppTheme.darkTheme,
+      darkTheme: AppTheme.darkTheme,
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginScreen(),

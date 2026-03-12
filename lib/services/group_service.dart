@@ -12,7 +12,12 @@ class GroupService {
 
   List<GroupModel> get groups => List.unmodifiable(_groups);
 
-  void createGroup(String id, String name, List<String> members, List<String> gameIds) {
+  void createGroup(
+    String id,
+    String name,
+    List<String> members,
+    List<String> gameIds,
+  ) {
     final newGroup = GroupModel(
       id: id,
       name: name,
@@ -23,7 +28,10 @@ class GroupService {
   }
 
   void addMember(String groupId, String memberName) {
-    final group = _groups.firstWhere((g) => g.id == groupId, orElse: () => throw Exception('Group not found'));
+    final group = _groups.firstWhere(
+      (g) => g.id == groupId,
+      orElse: () => throw Exception('Group not found'),
+    );
     if (!group.members.contains(memberName)) {
       group.members.add(memberName);
     }

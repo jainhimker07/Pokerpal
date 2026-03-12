@@ -32,9 +32,7 @@ class _GroupListScreenState extends State<GroupListScreen> {
   void _navigateToGroup(GroupModel group) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => GroupDetailScreen(group: group),
-      ),
+      MaterialPageRoute(builder: (context) => GroupDetailScreen(group: group)),
     );
   }
 
@@ -51,10 +49,7 @@ class _GroupListScreenState extends State<GroupListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Groups'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('My Groups'), centerTitle: true),
       body: RefreshIndicator(
         onRefresh: _loadGroups,
         child: groups.isEmpty
@@ -73,11 +68,16 @@ class _GroupListScreenState extends State<GroupListScreen> {
                   final group = groups[index];
                   return Card(
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
                       leading: const Icon(Icons.group, size: 30),
-                      title: Text(group.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(
+                        group.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text('${group.members.length} members'),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 18),
                       onTap: () => _navigateToGroup(group),

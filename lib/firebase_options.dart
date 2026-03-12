@@ -52,7 +52,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '150198810607',
     projectId: 'pokerpal-6e635',
     authDomain: 'pokerpal-6e635.firebaseapp.com',
-    databaseURL: 'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'pokerpal-6e635.firebasestorage.app',
     measurementId: 'G-FTCS741Q0C',
   );
@@ -62,7 +63,8 @@ class DefaultFirebaseOptions {
     appId: '1:150198810607:android:930df01d2543758f87681a',
     messagingSenderId: '150198810607',
     projectId: 'pokerpal-6e635',
-    databaseURL: 'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'pokerpal-6e635.firebasestorage.app',
   );
 
@@ -71,7 +73,8 @@ class DefaultFirebaseOptions {
     appId: '1:150198810607:ios:0e54b5bdc1d6196f87681a',
     messagingSenderId: '150198810607',
     projectId: 'pokerpal-6e635',
-    databaseURL: 'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://pokerpal-6e635-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'pokerpal-6e635.firebasestorage.app',
     iosBundleId: 'com.example.pokerPal',
   );

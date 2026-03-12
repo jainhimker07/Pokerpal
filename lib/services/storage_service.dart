@@ -3,7 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
   /// Save game data locally using SharedPreferences
-  Future<void> saveGameData(String gameId, Map<String, dynamic> gameData) async {
+  Future<void> saveGameData(
+    String gameId,
+    Map<String, dynamic> gameData,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(gameData);
     await prefs.setString('game_$gameId', jsonString);
@@ -32,7 +35,7 @@ class StorageService {
         games.add(jsonDecode(jsonString) as Map<String, dynamic>);
       }
     }
-    
+
     // Sort by creation time if possible, or leave unsorted
     return games;
   }

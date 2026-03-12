@@ -28,12 +28,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   void _createGroup() async {
     final groupName = _nameController.text.trim();
     final yourName = _yourNameController.text.trim();
-    final members = _memberControllers.map((c) => c.text.trim()).where((name) => name.isNotEmpty).toList();
+    final members = _memberControllers
+        .map((c) => c.text.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
 
     if (groupName.isEmpty || yourName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
@@ -49,7 +52,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       groupId,
       groupName,
       members, // Include all members
-      [],         // Start with empty gameIds
+      [], // Start with empty gameIds
     );
 
     final inviteText =
@@ -95,16 +98,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ..._memberControllers.map((controller) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'Member Name',
-                  border: OutlineInputBorder(),
+            ..._memberControllers.map(
+              (controller) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Member Name',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
-            )),
+            ),
             TextButton(
               onPressed: _addMemberField,
               child: const Text('Add Member'),

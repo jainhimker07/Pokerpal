@@ -18,14 +18,12 @@ class CustomButton extends StatelessWidget {
 
     return ElevatedButton(
       style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-          (states) {
-            if (states.contains(WidgetState.pressed)) {
-              return primaryColor.withAlpha(200);
-            }
-            return primaryColor;
-          },
-        ),
+        backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.pressed)) {
+            return primaryColor.withAlpha(200);
+          }
+          return primaryColor;
+        }),
         overlayColor: WidgetStateProperty.all<Color>(
           primaryColor.withAlpha(50),
         ),
@@ -37,9 +35,7 @@ class CustomButton extends StatelessWidget {
           const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       onPressed: onPressed,

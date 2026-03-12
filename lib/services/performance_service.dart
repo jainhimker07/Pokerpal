@@ -33,22 +33,27 @@ class GameHistoryPoint {
   final String dateLabel;
 
   GameHistoryPoint(this.date, this.profitLoss)
-      : dateLabel = DateFormat('MMM d').format(date);
+    : dateLabel = DateFormat('MMM d').format(date);
 }
 
 class PerformanceService {
   /// Calculates stats for a specific user ID.
   /// If [userId] is null, returns empty stats.
-  PlayerStats getStats(List<GameModel> allGames, String? userId, {String? userEmail}) {
+  PlayerStats getStats(
+    List<GameModel> allGames,
+    String? userId, {
+    String? userEmail,
+  }) {
     if (userId == null && userEmail == null) {
       return _emptyStats();
     }
 
     // 1. Filter games where this player participated
     final userGames = allGames.where((game) {
-      return game.results.any((player) => 
-        (player.userId == userId) || 
-        (userEmail != null && player.email == userEmail)
+      return game.results.any(
+        (player) =>
+            (player.userId == userId) ||
+            (userEmail != null && player.email == userEmail),
       );
     }).toList();
 
@@ -70,12 +75,13 @@ class PerformanceService {
 
     for (final game in userGames) {
       // Find player's result in this game
-      final result = game.results.firstWhere((p) => 
-        p.userId == userId || (userEmail != null && p.email == userEmail)
+      final result = game.results.firstWhere(
+        (p) =>
+            p.userId == userId || (userEmail != null && p.email == userEmail),
       );
 
       final pl = result.netProfit;
-      
+
       // Update Totals
       totalPL += pl;
       history.add(GameHistoryPoint(game.createdAt, pl));
@@ -84,7 +90,7 @@ class PerformanceService {
       if (pl > 0) {
         wins++;
         if (pl > biggestWin) biggestWin = pl;
-        
+
         // Streak Logic
         if (currentStreak >= 0) {
           currentStreak++;
@@ -93,18 +99,19 @@ class PerformanceService {
         }
       } else if (pl < 0) {
         losses++;
-        if (pl < biggestLoss) biggestLoss = pl; // biggestLoss is negative, so finding min
+        if (pl < biggestLoss)
+          biggestLoss = pl; // biggestLoss is negative, so finding min
 
         // Streak Logic
         if (currentStreak <= 0) {
-          currentStreak--; 
+          currentStreak--;
         } else {
           currentStreak = -1; // Reset to 1st loss
         }
       } else {
-        // Break even resets streak? Or ignores? 
-        // Let's reset for simplicity or treat as neutral. 
-        // Implementation choice: Reset streak on perceived "draw"? 
+        // Break even resets streak? Or ignores?
+        // Let's reset for simplicity or treat as neutral.
+        // Implementation choice: Reset streak on perceived "draw"?
         // Usually poker has small wins/losses, exact 0 is rare unless explicitly entered.
         // Let's keep streak if 0, or maybe reset. Resetting is safer.
         currentStreak = 0;
@@ -139,6 +146,67 @@ class PerformanceService {
       totalGames: 0,
       wins: 0,
       losses: 0,
+    );
+  }
+
+  /// Computes stats from Firestore session maps (from users/{uid}/sessions/).
+  /// Each session map has: { net, date (DateTime), buyIn, cashOut, roomName, ... }
+  /// Sessions should be sorted by date ascending for correct streak calculation.
+  PlayerStats getStatsFromSessions(List<Map<String, dynamic>> sessions) {
+    if (sessions.isEmpty) return _emptyStats();
+
+    // Sort ascending (oldest first) for streak / cumulative calculation
+    final sorted = List<Map<String, dynamic>>.from(sessions)
+      ..sort((a, b) {
+        final da = a['date'];
+        final db = b['date'];
+        if (da is DateTime && db is DateTime) return da.compareTo(db);
+        return 0;
+      });
+
+    double totalPL = 0;
+    final List<GameHistoryPoint> history = [];
+    int currentStreak = 0;
+    int bestWinStreak = 0;
+    double biggestWin = 0;
+    double biggestLoss = 0;
+    int wins = 0;
+    int losses = 0;
+
+    for (final session in sorted) {
+      final double pl = (session['net'] as num?)?.toDouble() ?? 0.0;
+      final date = session['date'] is DateTime
+          ? session['date'] as DateTime
+          : DateTime.now();
+
+      totalPL += pl;
+      history.add(GameHistoryPoint(date, pl));
+
+      if (pl > 0) {
+        wins++;
+        if (pl > biggestWin) biggestWin = pl;
+        currentStreak = currentStreak >= 0 ? currentStreak + 1 : 1;
+      } else if (pl < 0) {
+        losses++;
+        if (pl < biggestLoss) biggestLoss = pl;
+        currentStreak = currentStreak <= 0 ? currentStreak - 1 : -1;
+      } else {
+        currentStreak = 0;
+      }
+
+      if (currentStreak > bestWinStreak) bestWinStreak = currentStreak;
+    }
+
+    return PlayerStats(
+      totalProfitLoss: totalPL,
+      gameHistory: history,
+      currentStreak: currentStreak,
+      bestWinStreak: bestWinStreak,
+      biggestWin: biggestWin,
+      biggestLoss: biggestLoss,
+      totalGames: sorted.length,
+      wins: wins,
+      losses: losses,
     );
   }
 }

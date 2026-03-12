@@ -4,11 +4,7 @@ class PlayerTile extends StatelessWidget {
   final String name;
   final double buyIn;
 
-  const PlayerTile({
-    super.key,
-    required this.name,
-    required this.buyIn,
-  });
+  const PlayerTile({super.key, required this.name, required this.buyIn});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +18,10 @@ class PlayerTile extends StatelessWidget {
         leading: const Icon(Icons.person, size: 28),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('Buy-In: ₹${buyIn.toStringAsFixed(0)}'),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
     );
   }

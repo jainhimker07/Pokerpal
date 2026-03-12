@@ -15,12 +15,7 @@ class GroupModel {
 
   // Convert to Map for storage (e.g., in local DB or Firebase)
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'members': members,
-      'gameIds': gameIds,
-    };
+    return {'id': id, 'name': name, 'members': members, 'gameIds': gameIds};
   }
 
   // Create GroupModel from a Map

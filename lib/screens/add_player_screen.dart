@@ -29,19 +29,13 @@ class _AddPlayerScreenState extends State<AddPlayerScreen> {
       return;
     }
 
-    Navigator.pop(context, {
-      'name': name,
-      'buyIn': buyIn,
-    });
+    Navigator.pop(context, {'name': name, 'buyIn': buyIn});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Player'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Add New Player'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -57,7 +51,9 @@ class _AddPlayerScreenState extends State<AddPlayerScreen> {
               decoration: InputDecoration(
                 labelText: 'Player Name',
                 prefixIcon: const Icon(Icons.person),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -67,7 +63,9 @@ class _AddPlayerScreenState extends State<AddPlayerScreen> {
               decoration: InputDecoration(
                 labelText: 'Initial Buy-In (₹)',
                 prefixIcon: const Icon(Icons.attach_money),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -77,11 +75,17 @@ class _AddPlayerScreenState extends State<AddPlayerScreen> {
                 icon: const Icon(Icons.add_circle),
                 label: const Text('Add Player'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

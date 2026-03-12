@@ -68,129 +68,127 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selected =
-        _selectedPlayer != null ? _progress[_selectedPlayer] : null;
+    final selected = _selectedPlayer != null
+        ? _progress[_selectedPlayer]
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Progress'), centerTitle: true),
       body: RefreshIndicator(
         onRefresh: _load,
-        child:
-            _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _history.isEmpty
-                ? ListView(
-                  children: const [
-                    SizedBox(height: 140),
-                    Icon(Icons.insights_outlined, size: 80, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Center(
-                      child: Text(
-                        'Finish a game to start tracking progress.',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _history.isEmpty
+            ? ListView(
+                children: const [
+                  SizedBox(height: 140),
+                  Icon(Icons.insights_outlined, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Center(
+                    child: Text(
+                      'Finish a game to start tracking progress.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
-                  ],
-                )
-                : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Text(
-                      'Player Overview',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                ],
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(
+                    'Player Overview',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 12),
-                    ..._progress.values.map(
-                      (p) => Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._progress.values.map(
+                    (p) => Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: theme.colorScheme.primary
+                              .withOpacity(0.15),
+                          child: const Icon(Icons.person),
                         ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: theme.colorScheme.primary
-                                .withOpacity(0.15),
-                            child: const Icon(Icons.person),
-                          ),
-                          title: Text(
-                            p.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            '${p.gamesPlayed} games • ${p.wins}W-${p.losses}L\nAvg: ₹${p.averageProfit.toStringAsFixed(0)}',
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                (p.totalProfit >= 0 ? '+₹' : '₹') +
-                                    p.totalProfit.abs().toStringAsFixed(0),
-                                style: TextStyle(
-                                  color:
-                                      p.totalProfit >= 0
-                                          ? Colors.green
-                                          : Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        title: Text(
+                          p.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${p.gamesPlayed} games • ${p.wins}W-${p.losses}L\nAvg: ₹${p.averageProfit.toStringAsFixed(0)}',
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              (p.totalProfit >= 0 ? '+₹' : '₹') +
+                                  p.totalProfit.abs().toStringAsFixed(0),
+                              style: TextStyle(
+                                color: p.totalProfit >= 0
+                                    ? Colors.green
+                                    : Colors.red,
+                                fontWeight: FontWeight.bold,
                               ),
-                              Text(
-                                'Total P/L',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
+                            ),
+                            Text(
+                              'Total P/L',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
                               ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        onTap: () {
+                          setState(() => _selectedPlayer = p.name);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (selected != null) ...[
+                    Row(
+                      children: [
+                        Text(
+                          'Deep Dive',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                          onTap: () {
-                            setState(() => _selectedPlayer = p.name);
+                        ),
+                        const Spacer(),
+                        DropdownButton<String>(
+                          value: selected.name,
+                          items: _progress.keys
+                              .map(
+                                (name) => DropdownMenuItem(
+                                  value: name,
+                                  child: Text(name),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _selectedPlayer = value);
+                            }
                           },
                         ),
-                      ),
+                      ],
                     ),
+                    const SizedBox(height: 12),
+                    _PlayerHeadline(selected: selected),
                     const SizedBox(height: 16),
-                    if (selected != null) ...[
-                      Row(
-                        children: [
-                          Text(
-                            'Deep Dive',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Spacer(),
-                          DropdownButton<String>(
-                            value: selected.name,
-                            items:
-                                _progress.keys
-                                    .map(
-                                      (name) => DropdownMenuItem(
-                                        value: name,
-                                        child: Text(name),
-                                      ),
-                                    )
-                                    .toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _selectedPlayer = value);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _PlayerHeadline(selected: selected),
-                      const SizedBox(height: 16),
-                      ProfitChart(points: selected.cumulativeProfit),
-                      const SizedBox(height: 16),
-                      _OpponentBreakdown(opponents: selected.versus),
-                    ],
+                    ProfitChart(points: selected.cumulativeProfit),
+                    const SizedBox(height: 16),
+                    _OpponentBreakdown(opponents: selected.versus),
                   ],
-                ),
+                ],
+              ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 1,
@@ -259,10 +257,9 @@ class _PlayerHeadline extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color:
-                    selected.totalProfit >= 0
-                        ? Colors.green.withOpacity(0.12)
-                        : Colors.red.withOpacity(0.12),
+                color: selected.totalProfit >= 0
+                    ? Colors.green.withOpacity(0.12)
+                    : Colors.red.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -274,8 +271,9 @@ class _PlayerHeadline extends StatelessWidget {
                   Text(
                     selected.winRate.toStringAsFixed(0) + '%',
                     style: TextStyle(
-                      color:
-                          selected.totalProfit >= 0 ? Colors.green : Colors.red,
+                      color: selected.totalProfit >= 0
+                          ? Colors.green
+                          : Colors.red,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -353,8 +351,8 @@ class _OpponentBreakdown extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final entries =
-        opponents.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final entries = opponents.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     final winners = entries.where((e) => e.value > 0).take(3).toList();
     final nemeses = entries.where((e) => e.value < 0).take(3).toList();
@@ -394,10 +392,9 @@ class _OpponentBreakdown extends StatelessWidget {
               )
             else
               Wrap(
-                children:
-                    winners
-                        .map((e) => buildChip(e.key, e.value, Colors.green))
-                        .toList(),
+                children: winners
+                    .map((e) => buildChip(e.key, e.value, Colors.green))
+                    .toList(),
               ),
             const SizedBox(height: 14),
             const Text(
@@ -412,10 +409,9 @@ class _OpponentBreakdown extends StatelessWidget {
               )
             else
               Wrap(
-                children:
-                    nemeses
-                        .map((e) => buildChip(e.key, e.value, Colors.red))
-                        .toList(),
+                children: nemeses
+                    .map((e) => buildChip(e.key, e.value, Colors.red))
+                    .toList(),
               ),
           ],
         ),
@@ -438,8 +434,9 @@ class _ProfitPainter extends CustomPainter {
     final maxY = points.reduce(max);
     final range = (maxY - minY).abs() < 1 ? 1.0 : maxY - minY;
 
-    final stepX =
-        points.length == 1 ? size.width : size.width / (points.length - 1);
+    final stepX = points.length == 1
+        ? size.width
+        : size.width / (points.length - 1);
     final path = Path();
 
     for (var i = 0; i < points.length; i++) {
@@ -454,34 +451,30 @@ class _ProfitPainter extends CustomPainter {
       }
     }
 
-    final paintLine =
-        Paint()
-          ..color = color
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke;
+    final paintLine = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
 
-    final gradient =
-        Paint()
-          ..shader = LinearGradient(
-            colors: [color.withOpacity(0.25), color.withOpacity(0.02)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-          ..style = PaintingStyle.fill;
+    final gradient = Paint()
+      ..shader = LinearGradient(
+        colors: [color.withOpacity(0.25), color.withOpacity(0.02)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
 
-    final fillPath =
-        Path.from(path)
-          ..lineTo(size.width, size.height)
-          ..lineTo(0, size.height)
-          ..close();
+    final fillPath = Path.from(path)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
 
     canvas.drawPath(fillPath, gradient);
     canvas.drawPath(path, paintLine);
 
-    final pointPaint =
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.fill;
+    final pointPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
 
     for (var i = 0; i < points.length; i++) {
       final x = i * stepX;
@@ -493,11 +486,10 @@ class _ProfitPainter extends CustomPainter {
     // Draw zero line if it lies within the chart range.
     if (minY < 0 && maxY > 0) {
       final zeroY = size.height - ((0 - minY) / range) * size.height;
-      final zeroPaint =
-          Paint()
-            ..color = Colors.grey.withOpacity(0.4)
-            ..strokeWidth = 1
-            ..style = PaintingStyle.stroke;
+      final zeroPaint = Paint()
+        ..color = Colors.grey.withOpacity(0.4)
+        ..strokeWidth = 1
+        ..style = PaintingStyle.stroke;
       canvas.drawLine(Offset(0, zeroY), Offset(size.width, zeroY), zeroPaint);
     }
   }

@@ -26,11 +26,15 @@ class InputField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey[500]),
-        labelStyle: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+        labelStyle: TextStyle(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w600,
         ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),

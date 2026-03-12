@@ -7,11 +7,7 @@ class GroupTile extends StatelessWidget {
   final GroupModel group;
   final VoidCallback onTap;
 
-  const GroupTile({
-    super.key,
-    required this.group,
-    required this.onTap,
-  });
+  const GroupTile({super.key, required this.group, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +17,11 @@ class GroupTile extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        leading: const CircleAvatar(
-          child: Icon(Icons.group),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
+        leading: const CircleAvatar(child: Icon(Icons.group)),
         title: Text(
           group.name,
           style: const TextStyle(fontWeight: FontWeight.bold),

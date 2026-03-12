@@ -12,23 +12,26 @@ class SettlementService {
     for (final player in players) {
       final name = player['name'];
       final double buyIn = player['buyIn'];
-      final double finalChips = player['finalChips'] ?? player['exitChips'] ?? 0;
+      final double finalChips =
+          player['finalChips'] ?? player['exitChips'] ?? 0;
 
       final double expectedChips = buyIn * chipToCashRatio;
       final double netChips = finalChips - expectedChips;
       final double netProfit = netChips / chipToCashRatio;
       final double finalCash = finalChips / chipToCashRatio;
 
-      results.add(SettlementModel(
-        name: name,
-        buyIn: buyIn,
-        chipValue: chipToCashRatio,
-        finalChips: finalChips,
-        finalAmount: finalCash,
-        netProfit: netProfit,
-        userId: player['userId'],
-        email: player['email'],
-      ));
+      results.add(
+        SettlementModel(
+          name: name,
+          buyIn: buyIn,
+          chipValue: chipToCashRatio,
+          finalChips: finalChips,
+          finalAmount: finalCash,
+          netProfit: netProfit,
+          userId: player['userId'],
+          email: player['email'],
+        ),
+      );
     }
 
     return results;
@@ -61,7 +64,9 @@ class SettlementService {
       final amount = owed < available ? owed : available;
 
       if (amount > 0.01) {
-        transactions.add('${debtor.name} pays ₹${amount.toStringAsFixed(0)} to ${creditor.name}');
+        transactions.add(
+          '${debtor.name} pays ₹${amount.toStringAsFixed(0)} to ${creditor.name}',
+        );
       }
 
       debtor.netProfit += amount;
@@ -86,8 +91,12 @@ class SettlementService {
 
     buffer.writeln('🔍 Final Summary:');
     for (var r in results) {
-      final net = r.netProfit >= 0 ? '+₹${r.netProfit.toStringAsFixed(0)}' : '₹${r.netProfit.toStringAsFixed(0)}';
-      buffer.writeln('${r.name}: $net (Buy-In ₹${r.buyIn.toStringAsFixed(0)}, Final ₹${r.finalAmount.toStringAsFixed(0)})');
+      final net = r.netProfit >= 0
+          ? '+₹${r.netProfit.toStringAsFixed(0)}'
+          : '₹${r.netProfit.toStringAsFixed(0)}';
+      buffer.writeln(
+        '${r.name}: $net (Buy-In ₹${r.buyIn.toStringAsFixed(0)}, Final ₹${r.finalAmount.toStringAsFixed(0)})',
+      );
     }
 
     buffer.writeln('\n🤝 Who Owes Whom:');

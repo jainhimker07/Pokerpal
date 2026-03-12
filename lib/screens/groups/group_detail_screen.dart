@@ -22,7 +22,9 @@ class GroupDetailScreen extends StatelessWidget {
       context,
       '/game',
       arguments: {
-        'players': group.members.map((name) => {'name': name, 'buyIn': 0.0}).toList(),
+        'players': group.members
+            .map((name) => {'name': name, 'buyIn': 0.0})
+            .toList(),
         'groupName': group.name,
         'promptForRatio': true,
       },
@@ -39,7 +41,7 @@ class GroupDetailScreen extends StatelessWidget {
             icon: const Icon(Icons.share),
             onPressed: () => _inviteFriends(context),
             tooltip: 'Invite Friends',
-          )
+          ),
         ],
       ),
       body: Padding(
