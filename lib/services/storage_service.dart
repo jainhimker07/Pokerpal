@@ -19,6 +19,24 @@ class StorageService {
     return jsonDecode(jsonString) as Map<String, dynamic>;
   }
 
+  /// Get all saved games (naive implementation by iterating keys)
+  /// In a real app with many games, we might want a separate index.
+  Future<List<Map<String, dynamic>>> getAllGames() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where((key) => key.startsWith('game_'));
+    final games = <Map<String, dynamic>>[];
+
+    for (final key in keys) {
+      final jsonString = prefs.getString(key);
+      if (jsonString != null) {
+        games.add(jsonDecode(jsonString) as Map<String, dynamic>);
+      }
+    }
+    
+    // Sort by creation time if possible, or leave unsorted
+    return games;
+  }
+
   /// Optional: Clear all saved game data
   Future<void> clearAllGameData() async {
     final prefs = await SharedPreferences.getInstance();

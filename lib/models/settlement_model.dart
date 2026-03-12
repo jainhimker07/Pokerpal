@@ -4,6 +4,8 @@ class SettlementModel {
   final double chipValue;
   final double finalChips;
   final double finalAmount;
+  final String? userId;
+  final String? email;
   double netProfit; // Mutable for transaction calculations
 
   SettlementModel({
@@ -13,6 +15,8 @@ class SettlementModel {
     required this.finalChips,
     required this.finalAmount,
     required this.netProfit,
+    this.userId,
+    this.email,
   });
 
   /// Creates a mutable clone for in-place transaction calculations
@@ -24,6 +28,8 @@ class SettlementModel {
       finalChips: original.finalChips,
       finalAmount: original.finalAmount,
       netProfit: original.netProfit,
+      userId: original.userId,
+      email: original.email,
     );
   }
 
@@ -35,6 +41,8 @@ class SettlementModel {
       'finalChips': finalChips,
       'finalAmount': finalAmount,
       'netProfit': netProfit,
+      'userId': userId,
+      'email': email,
     };
   }
 
@@ -46,6 +54,8 @@ class SettlementModel {
       finalChips: map['finalChips'],
       finalAmount: map['finalAmount'],
       netProfit: map['netProfit'],
+      userId: map['userId'],
+      email: map['email'],
     );
   }
 }

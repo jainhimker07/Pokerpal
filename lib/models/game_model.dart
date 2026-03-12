@@ -48,6 +48,8 @@ class PlayerResult {
   final double finalChips;
   final double finalAmount;
   final double netProfit;
+  final String? userId;
+  final String? email;
 
   PlayerResult({
     required this.name,
@@ -55,6 +57,8 @@ class PlayerResult {
     required this.finalChips,
     required this.finalAmount,
     required this.netProfit,
+    this.userId,
+    this.email,
   });
 
   Map<String, dynamic> toMap() {
@@ -64,6 +68,8 @@ class PlayerResult {
       'finalChips': finalChips,
       'finalAmount': finalAmount,
       'netProfit': netProfit,
+      'userId': userId,
+      'email': email,
     };
   }
 
@@ -74,6 +80,8 @@ class PlayerResult {
       finalChips: map['finalChips'],
       finalAmount: map['finalAmount'],
       netProfit: map['netProfit'],
+      userId: map['userId'],
+      email: map['email'],
     );
   }
 }

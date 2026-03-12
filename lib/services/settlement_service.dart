@@ -26,6 +26,8 @@ class SettlementService {
         finalChips: finalChips,
         finalAmount: finalCash,
         netProfit: netProfit,
+        userId: player['userId'],
+        email: player['email'],
       ));
     }
 

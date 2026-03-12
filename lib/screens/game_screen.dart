@@ -140,7 +140,41 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 12),
-            if (!isGroupGame) ...[
+              const SizedBox(height: 12),
+              if (FirebaseAuth.instance.currentUser != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user != null) {
+                        final name = user.displayName ?? 'Me';
+                        // Check if already added
+                        if (players.any((p) => p['userId'] == user.uid)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('You are already added!')),
+                          );
+                          return;
+                        }
+                        
+                        setState(() {
+                          players.add({
+                            'name': name,
+                            'buyIn': 0.0, // Default, can be edited
+                            'userId': user.uid,
+                            'email': user.email,
+                          });
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.account_circle),
+                    label: const Text('Add Me (Link to Stats)'),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.deepPurple),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
               const Text(
                 'Add Player',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -162,46 +196,46 @@ class _GameScreenState extends State<GameScreen> {
                 icon: const Icon(Icons.person_add),
                 label: const Text('Add Player'),
               ),
-              const SizedBox(height: 24),
             ],
-            const Text(
-              'Players',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            if (players.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Text('No players added yet.', style: TextStyle(color: Colors.grey)),
-              )
-            else
-              Column(
-                children: players
-                    .map(
-                      (player) => Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: ListTile(
-                          leading: const Icon(Icons.person_outline),
-                          title: Text(player['name']),
-                          subtitle: Text('Buy-In: ₹${player['buyIn']}'),
-                        ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Players',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          if (players.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text('No players added yet.', style: TextStyle(color: Colors.grey)),
+            )
+          else
+            Column(
+              children: players
+                  .map(
+                    (player) => Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: const Icon(Icons.person_outline),
+                        title: Text(player['name']),
+                        subtitle: Text('Buy-In: ₹${player['buyIn']}'),
                       ),
-                    )
-                    .toList(),
-              ),
-            const SizedBox(height: 28),
-            ElevatedButton.icon(
-              onPressed: _continueToGame,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Continue to Game'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
+                    ),
+                  )
+                  .toList(),
             ),
-          ],
-        ),
+          const SizedBox(height: 28),
+          ElevatedButton.icon(
+            onPressed: _continueToGame,
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Continue to Game'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+            ),
+          ),
+        ],
       ),
     );
   }

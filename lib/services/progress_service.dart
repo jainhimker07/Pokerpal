@@ -40,6 +40,8 @@ class ProgressService {
                   finalChips: s.finalChips,
                   finalAmount: s.finalAmount,
                   netProfit: s.netProfit,
+                  userId: s.userId,
+                  email: s.email,
                 ),
               )
               .toList(),
