@@ -26,7 +26,7 @@ class AuthService {
 
       return await _auth.signInWithCredential(credential);
     } catch (e) {
-      print('Google sign in error: $e');
+      if (kDebugMode) print('Google sign in error: $e');
       return null;
     }
   }

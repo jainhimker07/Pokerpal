@@ -94,18 +94,29 @@ class UserService {
     });
   }
 
-  /// Look up a user by exactly 6-character code
+  /// Look up a user by exactly 6-character alphanumeric code.
+  /// SECURITY: Only returns public-safe fields (displayName, code, avatarColor).
+  /// Never returns uid, email, createdAt or any other private field.
+  /// The internal uid is stored under '_resolvedUid' for caller use within the app only.
   Future<Map<String, dynamic>?> getUserByCode(String code) async {
-    if (code.length != 6) return null;
-    
-    final query = await _db.collection('users').where('code', isEqualTo: code.toUpperCase()).get();
+    final sanitised = code.trim().toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    if (sanitised.length != 6) return null;
+
+    final query = await _db.collection('users').where('code', isEqualTo: sanitised).get();
     if (query.docs.isNotEmpty) {
-      final data = query.docs.first.data();
-      data['uid'] = query.docs.first.id;
-      return data;
+      final doc = query.docs.first;
+      final data = doc.data();
+      // Return ONLY safe public fields — uid and email are intentionally excluded
+      return {
+        'displayName': data['displayName'] ?? 'Player',
+        'code': data['code'] ?? sanitised,
+        'avatarColor': data['avatarColor'],
+        '_resolvedUid': doc.id, // Prefixed with _ to signal internal use only
+      };
     }
     return null;
   }
+
 
   /// Fetches total number of games played by this user via sessions subcollection count
   Future<int> getTotalGamesCount() async {

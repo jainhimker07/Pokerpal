@@ -56,10 +56,10 @@ class LoginScreen extends StatelessWidget {
             );
           }
         } catch (e) {
-          print('Sign in with Popup error: \$e');
+          if (kDebugMode) print('Sign in with Popup error: $e');
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Google Sign-In Failed: \$e')));
+          ).showSnackBar(SnackBar(content: Text('Sign-In Failed. Please try again.')));
         }
       },
       child: const Text('Sign in with Google (Web)'),

@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────────────────────────────────────────────────────
+    // HELPER FUNCTIONS
+    // ──────────────────────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // Validate a display name: non-empty, max 30 chars, string type
+    function validDisplayName(name) {
+      return name is string && name.size() > 0 && name.size() <= 30;
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // users/{uid}
+    // ──────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Anyone authenticated can read the public fields of any user profile
+      // (needed so getUserByCode can resolve displayName, code, avatarColor).
+      // Firestore returns the whole document but the Flutter client is coded
+      // to only surface safe fields — these rules are a belt-and-suspenders layer.
+      allow read: if isAuth();
+
+      // Only the owner can create their own profile document
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasAll(['displayName', 'code', 'nameChangeUsed', 'avatarColor', 'createdAt'])
+        && validDisplayName(request.resource.data.displayName)
+        && request.resource.data.code is string
+        && request.resource.data.code.size() == 6
+        && request.resource.data.nameChangeUsed == false;
+
+      // Only the owner can update their profile, with these restrictions:
+      allow update: if isOwner(uid)
+        // code is immutable — once set it cannot be changed
+        && request.resource.data.code == resource.data.code
+        // nameChangeUsed can only go from false → true, never back to false
+        && (resource.data.nameChangeUsed == true
+            ? request.resource.data.nameChangeUsed == true
+            : true)
+        // If nameChangeUsed is being set to true, displayName must be valid
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName'])
+            || validDisplayName(request.resource.data.displayName))
+        // avatarColor must be a string if present
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['avatarColor'])
+            || request.resource.data.avatarColor is string);
+
+      // No one can delete a user profile from the client
+      allow delete: if false;
+
+      // ──────────────────────────────────────────────────────────────
+      // users/{uid}/sessions/{sessionId}
+      // Only the owner can read their own sessions — no cross-user access
+      // ──────────────────────────────────────────────────────────────
+      match /sessions/{sessionId} {
+        allow read: if isOwner(uid);
+        // Sessions are written server-side via the app's own UID after settlement.
+        // The uid in the path must match the logged-in user.
+        allow write: if isOwner(uid)
+          && request.resource.data.keys().hasAll(['sessionId', 'roomName', 'date', 'net', 'buyIn'])
+          && request.resource.data.net is number
+          && request.resource.data.buyIn is number;
+        allow delete: if false;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // poker-split/{gameId}
+    // Game session documents written on settlement
+    // ──────────────────────────────────────────────────────────────
+    match /poker-split/{gameId} {
+      // Any authenticated user can read game documents
+      // (needed to display Recent Games history)
+      allow read: if isAuth();
+
+      // Only authenticated users can create game records.
+      // The hostUid field MUST match the authenticated user — no spoofing.
+      allow create: if isAuth()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['GameID', 'date', 'players', 'hostUid'])
+        && request.resource.data.players is list;
+
+      // Game records are immutable after creation — no updates or deletes
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Deny all other paths by default
+    // ──────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import '../services/user_service.dart';
@@ -23,8 +24,7 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _debounce;
   bool _isCodeSearching = false;
   bool _isCodeValid = false;
-  String? _linkedUid;
-  String? _linkedEmail;
+  String? _linkedUid; // Internal uid from _resolvedUid — never from getUserByCode's 'uid' field
   String? _linkedAvatarColorHex;
 
   List<Map<String, dynamic>> players = [];
@@ -57,7 +57,6 @@ class _GameScreenState extends State<GameScreen> {
           _isCodeSearching = false;
           _isCodeValid = false;
           _linkedUid = null;
-          _linkedEmail = null;
           _linkedAvatarColorHex = null;
           _nameController.clear();
         });
@@ -66,7 +65,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     setState(() => _isCodeSearching = true);
-    
+
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       final userData = await _userService.getUserByCode(value);
       if (mounted) {
@@ -74,14 +73,12 @@ class _GameScreenState extends State<GameScreen> {
           _isCodeSearching = false;
           if (userData != null) {
             _isCodeValid = true;
-            _linkedUid = userData['uid'];
-            _linkedEmail = userData['email'];
-            _linkedAvatarColorHex = userData['avatarColor'];
+            _linkedUid = userData['_resolvedUid'] as String?; // Only internal uid key
+            _linkedAvatarColorHex = userData['avatarColor'] as String?;
             _nameController.text = userData['displayName'] ?? 'Player';
           } else {
             _isCodeValid = false;
             _linkedUid = null;
-            _linkedEmail = null;
             _linkedAvatarColorHex = null;
             _nameController.clear();
           }
@@ -146,10 +143,12 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     // Override with linked account if code matched
+    // SECURITY: _linkedUid comes from _resolvedUid returned by getUserByCode.
+    // Email is NOT stored from code lookup — it is only set for the host via FirebaseAuth.
     if (_linkedUid != null) {
       userId = _linkedUid;
-      email = _linkedEmail;
-      isHost = false; // Code adds are guests by definition unless it's their own code, which is silly but harmless
+      email = null; // Email from code lookup is intentionally blocked
+      isHost = false;
     }
 
     players.add({
@@ -167,7 +166,6 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _isCodeValid = false;
       _linkedUid = null;
-      _linkedEmail = null;
       _linkedAvatarColorHex = null;
     });
   }
@@ -179,6 +177,7 @@ class _GameScreenState extends State<GameScreen> {
     _nameController.dispose();
     _buyInController.dispose();
     _roomNameController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -318,26 +317,93 @@ class _GameScreenState extends State<GameScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () async {
                         final user = FirebaseAuth.instance.currentUser;
-                        if (user != null) {
-                          // Fetch user's Firestore profile to get their code + avatar color
-                          final snapshot = await _userService.getUserProfileStream().first;
-                          final data = snapshot.data();
-                          final myCode = data?['code'] ?? '';
-                          final myColor = data?['avatarColor'];
-                          final myName = data?['displayName'] ?? user.displayName ?? 'Me';
-                          setState(() {
-                            players.insert(0, {
-                              'name': myName,
-                              'buyIn': 500.0,
-                              'userId': user.uid,
-                              'email': user.email,
-                              'isHost': true,
-                              if (myCode.isNotEmpty) 'code': myCode,
-                              if (myColor != null) 'avatarColor': myColor,
-                            });
+                        if (user == null) return;
+
+                        // Fetch Firestore profile first
+                        final snapshot = await _userService.getUserProfileStream().first;
+                        final data = snapshot.data();
+                        final myCode = data?['code'] ?? '';
+                        final myColor = data?['avatarColor'];
+                        final myName = data?['displayName'] ?? user.displayName ?? 'Me';
+
+                        if (!mounted) return;
+
+                        // Show buy-in dialog
+                        final buyInController = TextEditingController();
+                        final confirmed = await showDialog<double>(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            backgroundColor: const Color(0xFF1C1C23),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            title: const Text(
+                              'Your Initial Buy-In',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            content: TextField(
+                              controller: buyInController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              autofocus: true,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              decoration: InputDecoration(
+                                labelText: 'Buy-In Amount (₹)',
+                                labelStyle: const TextStyle(color: Colors.white54),
+                                prefixText: '₹ ',
+                                prefixStyle: const TextStyle(color: Colors.white54),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF2D2D38)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFF141419),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF8B5CF6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () {
+                                  final amount = double.tryParse(buyInController.text.trim());
+                                  if (amount != null && amount > 0) {
+                                    Navigator.pop(dialogContext, amount);
+                                  }
+                                },
+                                child: const Text('Add Me', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == null || !mounted) return;
+
+                        setState(() {
+                          players.insert(0, {
+                            'name': myName,
+                            'buyIn': confirmed,
+                            'userId': user.uid,
+                            'email': user.email,
+                            'isHost': true,
+                            if (myCode.isNotEmpty) 'code': myCode,
+                            if (myColor != null) 'avatarColor': myColor,
                           });
-                        }
+                        });
                       },
+
                       icon: const Icon(Icons.person),
                       label: const Text('Add Me (Link to Stats)'),
                       style: OutlinedButton.styleFrom(
@@ -385,6 +451,15 @@ class _GameScreenState extends State<GameScreen> {
                         controller: _codeController,
                         onChanged: _onCodeChanged,
                         textCapitalization: TextCapitalization.characters,
+                        maxLength: 6,
+                        maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                        buildCounter: (_, {required currentLength, required isFocused, required maxLength}) => null,
+                        inputFormatters: [
+                          // Only allow A-Z and 0-9 — no special chars or spaces
+                          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                          TextInputFormatter.withFunction((old, newVal) =>
+                            newVal.copyWith(text: newVal.text.toUpperCase())),
+                        ],
                         decoration: InputDecoration(
                           hintText: 'Code (opt)',
                           suffixIcon: _isCodeSearching 
@@ -420,6 +495,8 @@ class _GameScreenState extends State<GameScreen> {
                       child: TextField(
                         controller: _nameController,
                         readOnly: _isCodeValid,
+                        maxLength: 30,
+                        buildCounter: (_, {required currentLength, required isFocused, required maxLength}) => null,
                         style: TextStyle(color: _isCodeValid ? Colors.white54 : Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Player Name',
