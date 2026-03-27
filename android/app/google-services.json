@@ -13,7 +13,28 @@
           "package_name": "com.example.poker_pal"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "150198810607-75saullji4e1tc3a8vodf0qbpehhg53k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.poker_pal",
+            "certificate_hash": "cd3b4bc963b73e62ada2b31e689a8174d70eeb56"
+          }
+        },
+        {
+          "client_id": "150198810607-9jr16ikeqcanspop4fiuog46eo6fqtuj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.poker_pal",
+            "certificate_hash": "ff2586abe876be818960f6a67cda53234ae92d3c"
+          }
+        },
+        {
+          "client_id": "150198810607-1ub3multe0gjclbhohkb0snirkcnl6qg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD-O3jgYatZiZEcwbokyihIQI7DIcCEeaA"
@@ -21,7 +42,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "150198810607-1ub3multe0gjclbhohkb0snirkcnl6qg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "150198810607-ukvkoh437s0kiubv2ahkqjghf5ak2k73.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pokerPal"
+              }
+            }
+          ]
         }
       }
     }
