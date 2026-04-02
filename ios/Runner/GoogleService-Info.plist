@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.pokerPal</string>
+	<string>com.pokerPal</string>
 	<key>PROJECT_ID</key>
 	<string>pokerpal-6e635</string>
 	<key>STORAGE_BUCKET</key>
