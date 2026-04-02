@@ -76,6 +76,7 @@ class _HomeTabState extends State<HomeTab> {
   List<Map<String, dynamic>> _recentGames = [];
   bool _isLoading = true;
   String? _myCode;
+  String _displayName = 'Player';
 
   @override
   void initState() {
@@ -87,11 +88,12 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _initProfile() async {
     final isNewCode = await userService.getOrCreateUser();
     
-    // Fetch code for UI chip
+    // Fetch code and displayName from Firestore (source of truth)
     userService.getUserProfileStream().listen((snapshot) {
       if (snapshot.exists && mounted) {
         setState(() {
           _myCode = snapshot.data()?['code'];
+          _displayName = snapshot.data()?['displayName'] ?? 'Player';
         });
 
         if (isNewCode) {
@@ -256,6 +258,7 @@ class _HomeTabState extends State<HomeTab> {
       };
     }).toList();
 
+    if (!mounted) return;
     setState(() {
       _recentGames = formattedGames;
       _isLoading = false;
@@ -267,10 +270,6 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final displayName =
-        user?.displayName ?? 'Alex'; // Fallback to match design text if null
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('PokerPal 🃏'),
@@ -292,7 +291,7 @@ class _HomeTabState extends State<HomeTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Welcome, $displayName! 👋',
+              'Welcome, $_displayName! 👋',
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

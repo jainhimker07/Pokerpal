@@ -56,7 +56,7 @@ class UserService {
     final randomColor = avatarColors[Random().nextInt(avatarColors.length)];
 
     await docRef.set({
-      'displayName': user.displayName ?? 'Player',
+      'displayName': 'Player', // Always default to Player — user sets their own name
       'code': newCode,
       'nameChangeUsed': false,
       'avatarColor': randomColor,
