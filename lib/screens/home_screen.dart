@@ -83,6 +83,8 @@ class _HomeTabState extends State<HomeTab> {
     super.initState();
     _initProfile();
     _loadRecentGames();
+    // Silently sync any poker-split games this user was linked to
+    userService.syncMySessions();
   }
 
   Future<void> _initProfile() async {

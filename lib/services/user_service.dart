@@ -127,8 +127,9 @@ class UserService {
     return query.count ?? 0;
   }
 
-  /// Saves a session summary to Firestore for each linked player (those with a userId).
-  /// Called from SettlementScreen after settlement is calculated.
+  /// Saves the HOST's own session to Firestore. Only writes to the current user's
+  /// own path — cross-user writes are blocked by Firestore rules and handled
+  /// by syncMySessions() on each player's device instead.
   Future<void> saveSession({
     required String sessionId,
     required String? roomName,
@@ -137,45 +138,116 @@ class UserService {
     required double chipValue,
     required double cashValue,
   }) async {
-    final now = FieldValue.serverTimestamp();
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
 
-    // Build a compact names list for display in Recent Games cards
     final allPlayerNames = players.map((p) => p['name'] as String).toList();
     final playerCount = players.length;
 
-    for (final player in players) {
-      final String? uid = player['userId'];
-      if (uid == null) continue; // Skip unlinked (guest) players
+    // Find the current user's own player entry
+    final myPlayer = players.firstWhere(
+      (p) => p['userId'] == currentUser.uid,
+      orElse: () => <String, dynamic>{},
+    );
+    if (myPlayer.isEmpty) return; // Host didn't tap "Add Me" — nothing to save
 
-      // Find this player's settlement result
-      final settlement = settlements.firstWhere(
-        (s) => s.name == player['name'],
-        orElse: () => null,
-      );
+    final mySettlement = settlements.firstWhere(
+      (s) => s.name == myPlayer['name'],
+      orElse: () => null,
+    );
+    if (mySettlement == null) return;
 
-      if (settlement == null) continue;
+    await _db
+        .collection('users')
+        .doc(currentUser.uid)
+        .collection('sessions')
+        .doc(sessionId)
+        .set({
+          'sessionId': sessionId,
+          'roomName': roomName?.isNotEmpty == true ? roomName : 'Untitled Game',
+          'date': FieldValue.serverTimestamp(),
+          'playerName': myPlayer['name'],
+          'playerCode': myPlayer['code'] ?? '',
+          'buyIn': myPlayer['buyIn'],
+          'cashOut': mySettlement.finalAmount,
+          'net': mySettlement.netProfit,
+          'chipValue': chipValue,
+          'cashValue': cashValue,
+          'playerCount': playerCount,
+          'playerNames': allPlayerNames,
+        });
+  }
 
-      final sessionData = {
-        'sessionId': sessionId,
-        'roomName': roomName?.isNotEmpty == true ? roomName : 'Untitled Game',
-        'date': now,
-        'playerName': player['name'],
-        'playerCode': player['code'] ?? '',
-        'buyIn': player['buyIn'],
-        'cashOut': settlement.finalAmount,
-        'net': settlement.netProfit,
-        'chipValue': chipValue,
-        'cashValue': cashValue,
-        'playerCount': playerCount,
-        'playerNames': allPlayerNames,
-      };
+  /// Syncs sessions from the shared `poker-split` collection into the current
+  /// user's own `users/{uid}/sessions/` subcollection.
+  ///
+  /// This is the fix for cross-device history: the host writes to poker-split
+  /// with all players' UIDs. Each player calls this on app open to claim their
+  /// own records without needing cross-user Firestore write access.
+  Future<void> syncMySessions() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-      await _db
+    try {
+      // Find all games in poker-split where this user's uid is in the linkedUids array
+      final gamesQuery = await _db
+          .collection('poker-split')
+          .where('linkedUids', arrayContains: user.uid)
+          .get();
+
+      if (gamesQuery.docs.isEmpty) return;
+
+      // Fetch already-synced session IDs to avoid duplicate writes
+      final existingSessionsQuery = await _db
           .collection('users')
-          .doc(uid)
+          .doc(user.uid)
           .collection('sessions')
-          .doc(sessionId)
-          .set(sessionData);
+          .get();
+      final existingIds = existingSessionsQuery.docs.map((d) => d.id).toSet();
+
+      for (final gameDoc in gamesQuery.docs) {
+        final gameId = gameDoc.id;
+        if (existingIds.contains(gameId)) continue; // Already synced
+
+        final game = gameDoc.data();
+        final List<dynamic> gamePlayers = game['players'] ?? [];
+
+        // Find this user's entry in the players array
+        final myEntry = gamePlayers.firstWhere(
+          (p) => p is Map && p['uid'] == user.uid,
+          orElse: () => null,
+        );
+        if (myEntry == null) continue;
+
+        final date = game['date'];
+        final allNames = gamePlayers
+            .whereType<Map>()
+            .map((p) => p['name']?.toString() ?? '')
+            .toList();
+
+        // Write session to the user's own path — allowed by Firestore rules
+        await _db
+            .collection('users')
+            .doc(user.uid)
+            .collection('sessions')
+            .doc(gameId)
+            .set({
+              'sessionId': gameId,
+              'roomName': game['roomName'] ?? 'Untitled Game',
+              'date': date is Timestamp ? date : FieldValue.serverTimestamp(),
+              'playerName': myEntry['name'] ?? '',
+              'playerCode': myEntry['code'] ?? '',
+              'buyIn': (myEntry['buyIn'] as num?)?.toDouble() ?? 0.0,
+              'cashOut': (myEntry['cashOut'] as num?)?.toDouble() ?? 0.0,
+              'net': (myEntry['net'] as num?)?.toDouble() ?? 0.0,
+              'chipValue': (game['chipValue'] as num?)?.toDouble() ?? 1.0,
+              'cashValue': (game['cashValue'] as num?)?.toDouble() ?? 1.0,
+              'playerCount': gamePlayers.length,
+              'playerNames': allNames,
+            });
+      }
+    } catch (_) {
+      // Sync is best-effort — silently ignore failures
     }
   }
 

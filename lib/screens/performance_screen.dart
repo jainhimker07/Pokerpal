@@ -36,6 +36,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       return;
     }
 
+    // Sync any games this user was linked to (runs on each tab open, deduplication is built-in)
+    await _userService.syncMySessions();
+
     // PRIMARY: Load from Firestore sessions (cross-device, for linked players)
     final firestoreSessions = await _userService.loadUserSessions();
 
