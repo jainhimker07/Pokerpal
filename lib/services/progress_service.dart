@@ -20,7 +20,8 @@ class ProgressService {
 
   /// Save a finished game with all player settlements.
   /// Writes to both SharedPreferences (for local perf tab) and Firestore poker-split collection.
-  Future<void> recordGame({
+  /// Returns the generated gameId so callers can use the same ID for session storage.
+  Future<String> recordGame({
     required double chipValue,
     required double cashValue,
     required List<SettlementModel> settlements,
@@ -103,6 +104,8 @@ class ProgressService {
           .map((p) => p['uid'] as String)
           .toList(),
     });
+
+    return gameId;
   }
 
   /// Fetch all locally stored games.

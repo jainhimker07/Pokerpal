@@ -49,7 +49,11 @@ class _SettlementScreenState extends State<SettlementScreen> {
   }
 
   Future<void> _recordGame() async {
-    await _progressService.recordGame(
+    // recordGame() returns the UUID used for the poker-split Firestore document.
+    // We reuse this same ID for saveSession() so the host's sessions subcollection
+    // uses an identical key — this ensures syncMySessions() deduplication works
+    // correctly for all linked players.
+    final gameId = await _progressService.recordGame(
       chipValue: chipValue,
       cashValue: cashValue,
       settlements: results,
@@ -58,10 +62,8 @@ class _SettlementScreenState extends State<SettlementScreen> {
       roomName: roomName,
     );
 
-    // Generate a session ID based on timestamp
-    final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
     await _userService.saveSession(
-      sessionId: sessionId,
+      sessionId: gameId,
       roomName: roomName,
       players: players,
       settlements: results,

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
+import 'dart:developer' as dev;
 
 class UserService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -246,8 +247,9 @@ class UserService {
               'playerNames': allNames,
             });
       }
-    } catch (_) {
-      // Sync is best-effort — silently ignore failures
+    } catch (e, st) {
+      // Log the error so we can debug if sync fails for other players
+      dev.log('syncMySessions error: $e', name: 'UserService', error: e, stackTrace: st);
     }
   }
 
@@ -275,7 +277,8 @@ class UserService {
           'sessionId': doc.id,
         };
       }).toList();
-    } catch (_) {
+    } catch (e, st) {
+      dev.log('loadUserSessions error: $e', name: 'UserService', error: e, stackTrace: st);
       return [];
     }
   }
