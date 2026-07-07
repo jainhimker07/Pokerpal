@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import '../services/user_service.dart';
+import '../services/draft_session_service.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -21,6 +22,7 @@ class _GameScreenState extends State<GameScreen> {
   final TextEditingController _roomNameController = TextEditingController();
 
   final UserService _userService = UserService();
+  final DraftSessionService _draftService = DraftSessionService();
   Timer? _debounce;
   bool _isCodeSearching = false;
   bool _isCodeValid = false;
@@ -45,7 +47,33 @@ class _GameScreenState extends State<GameScreen> {
       if (args.containsKey('players')) {
         players = List<Map<String, dynamic>>.from(args['players']);
       }
+      // Restore chip/cash ratio if navigating back from a draft restore
+      if (args.containsKey('chipValue')) {
+        _chipController.text = args['chipValue'].toString();
+      }
+      if (args.containsKey('cashValue')) {
+        _cashController.text = args['cashValue'].toString();
+      }
+      if (args.containsKey('roomName') && args['roomName'] != null) {
+        _roomNameController.text = args['roomName'] as String;
+      }
+      // Persist the restored state immediately
+      if (players.isNotEmpty) _saveDraft('game');
     }
+  }
+
+  /// Builds the current game-setup state map and saves it as a draft.
+  void _saveDraft(String screen) {
+    final chip = double.tryParse(_chipController.text.trim()) ?? 0.0;
+    final cash = double.tryParse(_cashController.text.trim()) ?? 0.0;
+    _draftService.saveDraft({
+      'screen': screen,
+      'players': players,
+      'chipValue': chip,
+      'cashValue': cash,
+      'roomName': _roomNameController.text.trim(),
+      if (groupName != null) 'groupName': groupName,
+    });
   }
 
   void _onCodeChanged(String value) {
@@ -168,6 +196,7 @@ class _GameScreenState extends State<GameScreen> {
       _linkedUid = null;
       _linkedAvatarColorHex = null;
     });
+    _saveDraft('game');
   }
 
   @override
@@ -402,6 +431,7 @@ class _GameScreenState extends State<GameScreen> {
                             if (myColor != null) 'avatarColor': myColor,
                           });
                         });
+                        _saveDraft('game');
                       },
 
                       icon: const Icon(Icons.person),

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:myapp/services/auth_service.dart';
 import '../services/progress_service.dart';
 import '../services/user_service.dart';
+import '../services/draft_session_service.dart';
 import 'package:intl/intl.dart';
 import 'performance_screen.dart';
 import 'profile_screen.dart';
@@ -73,10 +75,12 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   final AuthService authService = AuthService();
   final UserService userService = UserService();
+  final DraftSessionService _draftService = DraftSessionService();
   List<Map<String, dynamic>> _recentGames = [];
   bool _isLoading = true;
   String? _myCode;
   String _displayName = 'Player';
+  StreamSubscription<dynamic>? _profileSub; // must be cancelled in dispose()
 
   @override
   void initState() {
@@ -85,13 +89,118 @@ class _HomeTabState extends State<HomeTab> {
     _loadRecentGames();
     // Silently sync any poker-split games this user was linked to
     userService.syncMySessions();
+    // Check for an unfinished game draft and offer to resume
+    _checkForDraft();
+  }
+
+  @override
+  void dispose() {
+    _profileSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkForDraft() async {
+    final draft = await _draftService.loadDraft();
+    if (draft == null) return;
+    // Wait until the widget tree is fully built before showing the dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showDraftRestoreDialog(draft);
+    });
+  }
+
+  void _showDraftRestoreDialog(Map<String, dynamic> draft) {
+    final List<Map<String, dynamic>> players =
+        (draft['players'] as List? ?? []).cast<Map<String, dynamic>>();
+    final int playerCount = players.length;
+    final String roomLabel = (draft['roomName'] as String?)?.isNotEmpty == true
+        ? '“${draft['roomName']}”'
+        : 'Untitled Room';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C23),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: const [
+            Icon(Icons.casino, color: Color(0xFF8B5CF6), size: 28),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Unfinished Game',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'You have an unfinished game: $roomLabel with $playerCount player${playerCount == 1 ? '' : 's'}. Would you like to resume?',
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _draftService.clearDraft();
+            },
+            child: const Text(
+              'Discard',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B5CF6),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _resumeDraft(draft);
+            },
+            child: const Text(
+              'Resume',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigates to the appropriate game screen to restore the in-progress draft.
+  void _resumeDraft(Map<String, dynamic> draft) {
+    final String screen = draft['screen'] as String? ?? 'game';
+    final args = Map<String, dynamic>.from(draft)..remove('screen');
+
+    switch (screen) {
+      case 'buyins':
+        Navigator.pushNamed(context, '/buyins', arguments: args)
+            .then((_) => _loadRecentGames());
+        break;
+      case 'result':
+        Navigator.pushNamed(context, '/result', arguments: args)
+            .then((_) => _loadRecentGames());
+        break;
+      case 'game':
+      default:
+        Navigator.pushNamed(context, '/game', arguments: args)
+            .then((_) => _loadRecentGames());
+        break;
+    }
   }
 
   Future<void> _initProfile() async {
     final isNewCode = await userService.getOrCreateUser();
-    
-    // Fetch code and displayName from Firestore (source of truth)
-    userService.getUserProfileStream().listen((snapshot) {
+
+    // Store the subscription so it can be cancelled in dispose(),
+    // preventing setState calls on a deactivated widget.
+    _profileSub = userService.getUserProfileStream().listen((snapshot) {
       if (snapshot.exists && mounted) {
         setState(() {
           _myCode = snapshot.data()?['code'];

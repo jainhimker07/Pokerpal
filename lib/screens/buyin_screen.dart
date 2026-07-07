@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../services/draft_session_service.dart';
 
 class BuyInScreen extends StatefulWidget {
   const BuyInScreen({super.key});
@@ -15,6 +16,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
   String? groupName;
   String? roomName;
 
+  final DraftSessionService _draftService = DraftSessionService();
   final Map<String, TextEditingController> _controllers = {};
   final TextEditingController _newNameController = TextEditingController();
   final TextEditingController _newBuyInController = TextEditingController();
@@ -49,6 +51,20 @@ class _BuyInScreenState extends State<BuyInScreen> {
         _controllers[player['name']] = TextEditingController();
       }
     }
+    // Save draft whenever we land on this screen (including draft-restore path)
+    _saveDraft();
+  }
+
+  /// Persists the current buy-in state as a draft.
+  void _saveDraft() {
+    _draftService.saveDraft({
+      'screen': 'buyins',
+      'players': players,
+      'chipValue': chipValue,
+      'cashValue': cashValue,
+      'roomName': roomName,
+      if (groupName != null) 'groupName': groupName,
+    });
   }
 
   void _addBuyIn(String name, double amount) {
@@ -57,6 +73,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
       player['buyIn'] += amount;
     });
     _controllers[name]!.clear();
+    _saveDraft();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Added ₹${amount.toInt()} to $name')),
     );
@@ -74,6 +91,7 @@ class _BuyInScreenState extends State<BuyInScreen> {
 
     _newNameController.clear();
     _newBuyInController.clear();
+    _saveDraft();
 
     ScaffoldMessenger.of(
       context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/draft_session_service.dart';
 import '../services/settlement_service.dart';
 import '../services/progress_service.dart';
 import '../services/user_service.dart';
@@ -23,6 +24,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
   bool _initialized = false;
   final _progressService = ProgressService();
   final _userService = UserService();
+  final _draftService = DraftSessionService();
 
   @override
   void didChangeDependencies() {
@@ -70,6 +72,9 @@ class _SettlementScreenState extends State<SettlementScreen> {
       chipValue: chipValue,
       cashValue: cashValue,
     );
+
+    // Draft is no longer needed — the game is fully settled and saved.
+    await _draftService.clearDraft();
   }
 
   @override

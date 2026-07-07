@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
 
@@ -16,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
   
   bool _isEditingName = false;
+  bool _isDeleting = false;
   final TextEditingController _nameController = TextEditingController();
 
   void _showColorPicker(String currentColor) {
@@ -139,6 +141,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C23),
+        title: const Text('Delete Account', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'This will permanently delete your account, player code, and all game history. This cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _executeDeleteAccount();
+            },
+            child: const Text('Delete My Account', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _executeDeleteAccount() async {
+    setState(() => _isDeleting = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Pre-emptively reauthenticate to avoid requires-recent-login mid-flow
+      final reauthed = await _authService.reauthenticate();
+      if (!reauthed) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please verify your identity to delete your account')),
+        );
+        setState(() => _isDeleting = false);
+        return;
+      }
+
+      final db = FirebaseFirestore.instance;
+
+      // 1. Delete all documents in users/{uid}/sessions/ subcollection
+      final sessionsQuery = await db.collection('users').doc(user.uid).collection('sessions').get();
+      final docs = sessionsQuery.docs;
+      for (var i = 0; i < docs.length; i += 500) {
+        final batch = db.batch();
+        final end = (i + 500 < docs.length) ? i + 500 : docs.length;
+        for (final doc in docs.sublist(i, end)) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
+
+      // 2. Delete the users/{uid} document
+      await db.collection('users').doc(user.uid).delete();
+
+      // 3. Delete the Firebase Auth account
+      await user.delete();
+
+      // 4. Navigate to login and clear the navigation stack
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete account: ${e.message}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred while deleting your account')),
+      );
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
   }
 
   @override
@@ -406,6 +491,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: _confirmSignOut,
                 icon: const Icon(Icons.logout, color: Color(0xFFEF4444)),
                 label: const Text('Sign Out', style: TextStyle(color: Color(0xFFEF4444))),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  side: const BorderSide(color: Color(0xFFEF4444)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 6. Delete Account
+              OutlinedButton.icon(
+                onPressed: _isDeleting ? null : _confirmDeleteAccount,
+                icon: _isDeleting 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2))
+                    : const Icon(Icons.delete_forever, color: Color(0xFFEF4444)),
+                label: Text(_isDeleting ? 'Deleting...' : 'Delete Account', style: const TextStyle(color: Color(0xFFEF4444))),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   side: const BorderSide(color: Color(0xFFEF4444)),

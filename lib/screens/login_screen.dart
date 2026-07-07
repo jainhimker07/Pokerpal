@@ -78,6 +78,162 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  /// Shows an email + password dialog and authenticates with Firebase.
+  /// Credentials are validated server-side — nothing is hardcoded in the binary.
+  Future<void> _handleDemoSignIn() async {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    String? dialogError;
+    bool dialogLoading = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: !dialogLoading,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            Future<void> attempt() async {
+              final email = emailController.text.trim();
+              final password = passwordController.text;
+              if (email.isEmpty || password.isEmpty) {
+                setDialogState(() => dialogError = 'Please enter email and password.');
+                return;
+              }
+              setDialogState(() {
+                dialogLoading = true;
+                dialogError = null;
+              });
+              try {
+                final credential = await _authService.signInWithEmailPassword(
+                  email: email,
+                  password: password,
+                );
+                if (!mounted) return;
+                if (credential != null) {
+                  // Just close the dialog — AuthWrapper's StreamBuilder on
+                  // authStateChanges() will automatically replace LoginScreen
+                  // with HomeScreen, exactly like Google/Apple SSO do.
+                  Navigator.of(dialogContext).pop();
+                } else {
+                  setDialogState(() {
+                    dialogLoading = false;
+                    dialogError = 'Incorrect email or password.';
+                  });
+                }
+              } catch (_) {
+                setDialogState(() {
+                  dialogLoading = false;
+                  dialogError = 'Incorrect email or password.';
+                });
+              }
+            }
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1C1C23),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              title: const Text(
+                'Demo Login',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: const TextStyle(color: Colors.white54),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF2D2D38)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFF141419),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    onSubmitted: (_) => attempt(),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: const TextStyle(color: Colors.white54),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF2D2D38)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFF141419),
+                    ),
+                  ),
+                  if (dialogError != null) ...[  
+                    const SizedBox(height: 10),
+                    Text(
+                      dialogError!,
+                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: dialogLoading
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: dialogLoading ? null : attempt,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: dialogLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Sign In',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -216,6 +372,27 @@ class _LoginScreenState extends State<LoginScreen>
                           darkIcon: false,
                         ),
                       ],
+
+                      const SizedBox(height: 20),
+
+                      // Demo Login — for App Store review only
+                      GestureDetector(
+                        onTap: _handleDemoSignIn,
+                        child: Container(
+                          key: const Key('demo_login_btn'),
+                          height: 40,
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'Try Demo',
+                            style: TextStyle(
+                              color: Color(0xFF7C3AED),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
 
                       const Spacer(flex: 1),
 

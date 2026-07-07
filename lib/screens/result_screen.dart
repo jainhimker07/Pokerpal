@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/draft_session_service.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key});
@@ -14,6 +15,7 @@ class _ResultScreenState extends State<ResultScreen> {
   String? groupName;
   String? roomName;
   final Map<String, TextEditingController> _controllers = {};
+  final DraftSessionService _draftService = DraftSessionService();
 
   @override
   void didChangeDependencies() {
@@ -28,6 +30,20 @@ class _ResultScreenState extends State<ResultScreen> {
     for (final player in players) {
       _controllers[player['name']] = TextEditingController();
     }
+    // Persist that we are now on the result screen (draft-restore path)
+    _saveDraft();
+  }
+
+  /// Persists the current chip-entry state as a draft.
+  void _saveDraft() {
+    _draftService.saveDraft({
+      'screen': 'result',
+      'players': players,
+      'chipValue': chipValue,
+      'cashValue': cashValue,
+      'roomName': roomName,
+      if (groupName != null) 'groupName': groupName,
+    });
   }
 
   @override
@@ -182,6 +198,7 @@ class _ResultScreenState extends State<ResultScreen> {
                               onChanged: (value) {
                                 player['finalChips'] =
                                     double.tryParse(value) ?? 0;
+                                _saveDraft();
                               },
                             ),
                           ),
